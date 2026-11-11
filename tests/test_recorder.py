@@ -217,6 +217,36 @@ class AgentTests(unittest.TestCase):
         self.assertEqual(p["EnvironmentVariables"]["STICKY_DB"], "/x.db")
         self.assertTrue(p["StandardErrorPath"].startswith(str(self.home)))
 
+    def test_homebrew_python_uses_stable_opt_path(self):
+        self.assertEqual(
+            agent.stable_python_path("/opt/homebrew/Cellar/sticky/0.1.0/libexec/bin/python"),
+            "/opt/homebrew/opt/sticky/libexec/bin/python",
+        )
+        self.assertEqual(agent.stable_python_path("/usr/bin/python3"), "/usr/bin/python3")
+        p = agent.build_plist(python="/opt/homebrew/Cellar/sticky/0.1.0/libexec/bin/python",
+                              home=self.home)
+        self.assertEqual(p["ProgramArguments"][0], "/opt/homebrew/opt/sticky/libexec/bin/python")
+
+    def test_pythonpath_only_for_source_checkouts(self):
+        checkout = self.home / "Sticky"
+        (checkout / "src" / "sticky").mkdir(parents=True)
+        (checkout / "pyproject.toml").write_text("")
+        p = agent.build_plist(home=self.home, package_dir=checkout / "src" / "sticky")
+        self.assertEqual(p["EnvironmentVariables"]["PYTHONPATH"], str(checkout / "src"))
+        installed = self.home / "venv" / "lib" / "python3.15" / "site-packages" / "sticky"
+        installed.mkdir(parents=True)
+        p = agent.build_plist(home=self.home, package_dir=installed)
+        self.assertNotIn("PYTHONPATH", p["EnvironmentVariables"])
+
+    def test_version_matches_pyproject(self):
+        import re as _re
+
+        import sticky
+
+        pyproject = (Path(__file__).parent.parent / "pyproject.toml").read_text()
+        self.assertEqual(_re.search(r'^version = "([^"]+)"', pyproject, _re.M)[1],
+                         sticky.__version__)
+
     def test_install_writes_plist_and_bootstraps(self):
         fake = FakeLaunchctl()
         path = agent.install(python="/usr/bin/python3", home=self.home, run=fake)

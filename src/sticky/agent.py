@@ -12,6 +12,7 @@ from __future__ import annotations
 
 import os
 import plistlib
+import re
 import subprocess
 import sys
 from pathlib import Path
@@ -34,21 +35,47 @@ def log_path(home: Path | None = None) -> Path:
     return (home or Path.home()) / "Library" / "Logs" / "Sticky" / "recorder.log"
 
 
+_CELLAR = re.compile(r"^(?P<prefix>.*)/Cellar/(?P<name>[^/]+)/[^/]+/(?P<rest>.*)$")
+
+
+def stable_python_path(python: str) -> str:
+    """Use Homebrew's version-independent ``opt`` path when installed by Homebrew.
+
+    ``/opt/homebrew/Cellar/sticky/0.1.0/libexec/bin/python`` becomes
+    ``/opt/homebrew/opt/sticky/libexec/bin/python``, so the agent keeps
+    working after ``brew upgrade`` (which removes the old Cellar folder).
+    """
+    m = _CELLAR.match(python)
+    if not m:
+        return python
+    return f"{m['prefix']}/opt/{m['name']}/{m['rest']}"
+
+
+def source_checkout_root(package_dir: Path | None = None) -> Path | None:
+    """The ``src`` folder if Sticky runs from a source checkout, else None."""
+    src = (package_dir or Path(__file__).resolve().parent).parent
+    if src.name == "src" and (src.parent / "pyproject.toml").is_file():
+        return src
+    return None
+
+
 def build_plist(
     python: str = sys.executable,
     db_path: str | None = None,
     home: Path | None = None,
+    package_dir: Path | None = None,
 ) -> dict:
     env = {"PYTHONUNBUFFERED": "1"}
     if db_path:
         env["STICKY_DB"] = str(db_path)
-    # Make the agent work from a source checkout too (not just pip installs).
-    package_root = str(Path(__file__).resolve().parent.parent)
-    env["PYTHONPATH"] = package_root
+    # Running from a source checkout (not installed): point Python at it.
+    # Never set this for installed copies: it would pin a version's folder.
+    if (src := source_checkout_root(package_dir)) is not None:
+        env["PYTHONPATH"] = str(src)
     log = str(log_path(home))
     return {
         "Label": LABEL,
-        "ProgramArguments": [python, "-m", "sticky", "record"],
+        "ProgramArguments": [stable_python_path(python), "-m", "sticky", "record"],
         "RunAtLoad": True,
         "KeepAlive": True,
         "ThrottleInterval": 30,  # if it crashes, wait 30 s before relaunching

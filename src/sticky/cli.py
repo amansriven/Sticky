@@ -21,7 +21,7 @@ from datetime import datetime
 from pathlib import Path
 from typing import Iterable, Mapping
 
-from . import agent
+from . import __version__, agent
 from .assembler import assemble
 from .logsource import read_records
 from .store import Store, now_ts, parse_duration, ts_ago
@@ -344,6 +344,7 @@ def cmd_uninstall_agent(args: argparse.Namespace) -> int:
 
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(prog="sticky", description="Why does your Mac keep asking?")
+    parser.add_argument("--version", action="version", version=f"sticky {__version__}")
     parser.add_argument("--db", help="database path (default: ~/Library/Application Support/Sticky/sticky.db)")
     sub = parser.add_subparsers(dest="command", required=True)
 
