@@ -70,6 +70,23 @@ CREATE TABLE IF NOT EXISTS events (
 CREATE INDEX IF NOT EXISTS events_ts ON events (ts_start);
 CREATE INDEX IF NOT EXISTS events_key ON events (client_id, service, target_id, ts_start);
 
+CREATE TABLE IF NOT EXISTS identities (     -- one row per distinct build seen
+    id          INTEGER PRIMARY KEY,
+    client_id   TEXT,
+    code_path   TEXT NOT NULL,
+    version     TEXT,
+    sign_kind   TEXT,
+    team_id     TEXT,
+    dr          TEXT,                      -- designated requirement
+    dr_kind     TEXT,                      -- team | apple | cdhash | path | other
+    cdhash      TEXT,
+    usage_keys  TEXT,                      -- JSON list of NS*UsageDescription keys
+    first_seen  TEXT NOT NULL,
+    last_seen   TEXT NOT NULL,
+    UNIQUE (code_path, cdhash)
+);
+CREATE INDEX IF NOT EXISTS identities_client ON identities (client_id, first_seen);
+
 CREATE TABLE IF NOT EXISTS unrecognised (
     template TEXT PRIMARY KEY,  -- formatString (ndjson) or message prefix
     count    INTEGER NOT NULL,
@@ -201,6 +218,40 @@ class Store:
 
     def count_events(self) -> int:
         return int(self.db.execute("SELECT COUNT(*) FROM events").fetchone()[0])
+
+    # Identities -----------------------------------------------------------------
+    def upsert_identity(self, ident, client_id: str | None = None) -> None:
+        """Record one build of an app (an ``identity.Identity``)."""
+        import json
+
+        if not ident.exists:
+            return
+        ts = now_ts()
+        self.db.execute(
+            "INSERT INTO identities (client_id, code_path, version, sign_kind, team_id, dr, dr_kind, "
+            "cdhash, usage_keys, first_seen, last_seen) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) "
+            "ON CONFLICT(code_path, cdhash) DO UPDATE SET last_seen = excluded.last_seen, "
+            "client_id = COALESCE(excluded.client_id, client_id)",
+            (client_id or ident.identifier, ident.code_path, ident.version, ident.sign_kind,
+             ident.team_id, ident.designated_requirement, ident.dr_kind, ident.cdhash or "",
+             json.dumps(sorted(ident.usage_keys)), ts, ts),
+        )
+
+    def identities_for(self, client_id: str) -> list[sqlite3.Row]:
+        return self.db.execute(
+            "SELECT * FROM identities WHERE client_id = ? ORDER BY first_seen", (client_id,)
+        ).fetchall()
+
+    def latest_path_for(self, client_id: str) -> str | None:
+        row = self.db.execute(
+            "SELECT client_path FROM events WHERE client_id = ? AND client_path IS NOT NULL "
+            "ORDER BY ts_start DESC LIMIT 1", (client_id,)
+        ).fetchone()
+        return row[0] if row else None
+
+    def first_run_started(self) -> str | None:
+        row = self.db.execute("SELECT MIN(started_at) FROM runs").fetchone()
+        return row[0] if row else None
 
     # Health -------------------------------------------------------------------
     def add_unrecognised(self, counts: dict[str, int]) -> None:

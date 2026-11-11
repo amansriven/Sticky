@@ -7,8 +7,8 @@ Commands:
   sticky uninstall-agent   stop it and remove it
   sticky status            is the recorder running and healthy?
   sticky log               timeline of recorded permission decisions
-
-``why``, ``inspect`` and ``fix`` arrive in week 3 (see sticky-design.md).
+  sticky why APP           explain why an app keeps being asked, or is refused
+  sticky inspect PATH|ID   an app's signing identity: will grants stick?
 """
 
 from __future__ import annotations
@@ -18,6 +18,7 @@ import json
 import os
 import sys
 from datetime import datetime
+from pathlib import Path
 from typing import Iterable, Mapping
 
 from . import agent
@@ -205,6 +206,122 @@ def _show_status(store: Store) -> int:
     return 0 if running and not stale else 1
 
 
+MARKS = {"problem": "✗", "info": "!", "ok": "✓"}
+
+
+def _print_identity(ident, indent: str = "  ") -> None:
+    if not ident.exists:
+        print(f"{indent}Identity: {ident.code_path} no longer exists ({ident.error}).")
+        return
+    mark = "✓" if ident.stable else "⚠"
+    print(f"{indent}Identity: {mark} {ident.explain()}")
+
+
+def cmd_why(args: argparse.Namespace) -> int:
+    from .diagnose import diagnose
+    from .identity import inspect
+
+    try:
+        since = None if args.since in (None, "all") else ts_ago(parse_duration(args.since))
+    except ValueError as e:
+        print(f"sticky why: {e}", file=sys.stderr)
+        return 2
+
+    with _open_store(args) as store:
+        rows = store.query_events(since=since, client=args.app)
+        clients = {r["client_id"] for r in rows if r["client_id"]}
+        results = diagnose(rows, {c: store.identities_for(c) for c in clients})
+        if args.json:
+            for g, findings in results:
+                print(json.dumps({"client_id": g.client_id, "service": g.service,
+                                  "target": g.target, "requests": len(g.events),
+                                  "findings": [f.to_dict() for f in findings]}))
+            return 0
+        if not results:
+            started = store.first_run_started()
+            print(f"No recorded permission requests for {args.app!r}"
+                  + (f" in the last {args.since}." if since else "."))
+            if started:
+                print(f"Sticky only sees requests made while it was recording (since {started[:16]}).")
+            if os.path.exists(args.app):
+                print()
+                _print_identity(inspect(args.app), indent="")
+            return 1
+
+        by_client: dict[str, list] = {}
+        for g, findings in results:
+            by_client.setdefault(g.client_id, []).append((g, findings))
+
+        problems = 0
+        for client_id, items in by_client.items():
+            latest = max((e for g, _ in items for e in g.events), key=lambda e: e["ts_start"])
+            path = latest.get("client_path")
+            ident = inspect(path) if path else None
+            name = (ident.name if ident and ident.exists else None) or latest.get("client_name") or client_id
+            version = latest.get("client_version") or (ident.version if ident else None)
+            print(f"{name}  ({client_id}{' ' + version if version else ''})")
+            if ident:
+                _print_identity(ident)
+            builds = store.identities_for(client_id)
+            if len({b["cdhash"] for b in builds}) > 1 and builds[-1]["dr_kind"] == "cdhash":
+                print(f"  Builds seen: {len(builds)}, each with a different identity.")
+            # Problems first, then info, then OK.
+            order = {"problem": 0, "info": 1, "ok": 2}
+            items.sort(key=lambda gf: min((order[f.severity] for f in gf[1]), default=3))
+            for g, findings in items:
+                print(f"\n  {g.label}   ({len(g.events)} request{'s' if len(g.events) != 1 else ''})")
+                if not findings:
+                    last = g.latest
+                    print(f"    · last request {last['ts_start'][5:16]}: {last['outcome']}")
+                for f in findings:
+                    problems += f.severity == "problem"
+                    print(f"    {MARKS[f.severity]} {f.title}")
+                    for line in f.detail:
+                        print(f"      {line}")
+                    for line in f.fix:
+                        print(f"      Fix: {line}")
+            print()
+        return 1 if problems else 0
+
+
+def cmd_inspect(args: argparse.Namespace) -> int:
+    from .identity import USAGE_KEYS, find_app_by_bundle_id, inspect
+
+    target = args.target
+    if not os.path.exists(target):
+        with _open_store(args) as store:
+            path = store.latest_path_for(target)
+        path = path or find_app_by_bundle_id(target)
+        if not path:
+            print(f"sticky inspect: {target!r} is not a path, and no app with that bundle id was found.",
+                  file=sys.stderr)
+            return 2
+        target = path
+    ident = inspect(target)
+    if args.json:
+        print(json.dumps(ident.to_dict()))
+        return 0
+    if not ident.exists:
+        print(f"{ident.code_path}: {ident.error}")
+        return 1
+    print(f"{ident.name}  ({ident.identifier or 'no identifier'}{' ' + ident.version if ident.version else ''})")
+    print(f"  Path:        {ident.code_path}")
+    kind = ident.sign_kind + (" (linker-signed)" if ident.linker_signed else "")
+    print(f"  Signature:   {kind}" + (f", team {ident.team_id}" if ident.team_id else "")
+          + (f", {ident.authority}" if ident.authority and ident.sign_kind != "adhoc" else ""))
+    print(f"  Hardened runtime: {'yes' if ident.hardened_runtime else 'no'}"
+          + (f"; notarization ticket {ident.notarization}" if ident.notarization else ""))
+    print(f"  Requirement: {ident.designated_requirement or 'none'}")
+    print(f"  Verdict:     {'✓' if ident.stable else '⚠'} {ident.explain()}")
+    declared = sorted(ident.usage_keys)
+    missing = sorted(set(USAGE_KEYS.values()) - set(ident.usage_keys))
+    print(f"  Usage descriptions declared: {', '.join(declared) if declared else 'none'}")
+    if declared or Path(ident.code_path).suffix == ".app":
+        print(f"  Not declared (macOS may refuse these, or ask without a reason): "
+              f"{', '.join(k.removeprefix('NS').removesuffix('UsageDescription') for k in missing)}")
+    return 0 if ident.stable else 1
+
+
 def cmd_install_agent(args: argparse.Namespace) -> int:
     if args.dry_run:
         import plistlib
@@ -252,6 +369,17 @@ def main(argv: list[str] | None = None) -> int:
     p.add_argument("--limit", type=int, default=200, help="newest N (default 200)")
     p.add_argument("--json", action="store_true", help="one JSON object per event")
     p.set_defaults(func=cmd_log)
+
+    p = sub.add_parser("why", help="explain why an app keeps being asked (or is refused)")
+    p.add_argument("app", help="bundle id, name or path fragment, e.g. claude or com.apple.Terminal")
+    p.add_argument("--since", default="30d", help="how far back: 2h, 7d or all (default 30d)")
+    p.add_argument("--json", action="store_true", help="one JSON object per app + permission + target")
+    p.set_defaults(func=cmd_why)
+
+    p = sub.add_parser("inspect", help="show an app's signing identity and whether grants will stick")
+    p.add_argument("target", help="path to an app or tool, or a bundle id")
+    p.add_argument("--json", action="store_true")
+    p.set_defaults(func=cmd_inspect)
 
     p = sub.add_parser("status", help="is the recorder running and healthy?")
     p.set_defaults(func=cmd_status)

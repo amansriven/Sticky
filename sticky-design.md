@@ -258,6 +258,21 @@ This verifies the core diagnosis on your own Mac, and it makes a good demo GIF.
 - SIGTERM stops the recorder cleanly, and `log stream` stops with it.
 - **Still to do:** run it for 24 h as a LaunchAgent, including sleep and wake.
 
+### Week 3 results (2026-11-11, macOS 27.2.1)
+
+Built `sticky inspect`, `sticky why`, identity snapshots and rules R1a–R1d, R2, R4 and the new R5. The end-to-end test used `tools/brokentool`, an ad-hoc signed app launched with `open` so macOS holds it responsible:
+
+| Step | Signing identity | Result |
+|---|---|---|
+| v1, first run | `cdhash H"90e03ff5…"` | Prompted; allowed. tccd logged v1's requirement. |
+| v1, second run | same | Allowed silently, with `target Requirements match`. |
+| v2 (rebuilt, same bundle id) | `cdhash H"7289ee52…"` | **Allowed silently, no prompt.** The request carried v2's requirement, and there was **no** `target Requirements match` line. |
+
+- **The planned R1b scenario didn't happen.** For Automation, macOS 27.2.1 carried an ad-hoc app's grant over to a rebuild with a different requirement. The R1b rule stays (it's unit-tested), but it's unconfirmed live. The new R5 (info) rule reports what actually happened.
+- tccd logs an app's signing requirement only when it prompts. So R1b compares the requirement from the original prompt with the one from the new prompt, and R5 compares the original prompt with identity snapshots.
+- syspolicyd checks **Developer Tools** on every app launch, and the answer defaults to deny without a prompt. Diagnoses now ignore it so it doesn't show up as a false "silently denied".
+- **Next to test:** does an ad-hoc rebuild lose **Accessibility** or **Screen Recording**? Developers often report having to re-add their app there after rebuilding. Neither shows a prompt, so the rebuild would show up as a silent denial while System Settings still shows the toggle on. That would make R2/R5 more useful.
+
 ---
 
 ## 8. Resume numbers to measure

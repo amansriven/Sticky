@@ -53,6 +53,7 @@ class Recorder:
         backoff: Callable[[int], float] | None = None,
         log: Callable[[str], None] | None = None,
         store_all: bool = False,
+        snapshot_identities: bool = True,
     ) -> None:
         self.store = store
         self.command = list(command)
@@ -60,6 +61,8 @@ class Recorder:
         self.backoff = backoff or (lambda n: min(MAX_BACKOFF_SECONDS, 2 ** min(n, 6)))
         self.log = log or (lambda msg: print(f"{now_ts()} {msg}", file=sys.stderr, flush=True))
         self.store_all = store_all  # also store requests that decided nothing
+        self.snapshot_identities = snapshot_identities
+        self._inspected: dict[str, float] = {}  # client path -> signature mtime when snapshotted
         self._stop = threading.Event()
         self._proc: subprocess.Popen | None = None
         self.run_id: int | None = None
@@ -164,6 +167,27 @@ class Recorder:
             self.counts["decisions"] += 1
             ev._row_id = row
             self._heartbeat()  # keep `sticky status` current; decisions are rare
+            self._snapshot(ev)
+
+    def _snapshot(self, ev: Event) -> None:
+        """Record the signing identity of each app build the first time it's seen.
+
+        Runs ``codesign`` (tens of ms) once per path, and again whenever the
+        app's signature file changes (a rebuild or update in place).
+        """
+        path = ev.client_path
+        if not self.snapshot_identities or not path or ev.entitled:
+            return
+        from .identity import inspect, signature_mtime
+
+        mtime = signature_mtime(path)
+        if self._inspected.get(path) == mtime:
+            return
+        self._inspected[path] = mtime
+        try:
+            self.store.upsert_identity(inspect(path), ev.client_id)
+        except Exception as e:  # never let a snapshot stop recording
+            self.log(f"identity snapshot failed for {path}: {e}")
 
     def _update_row(self, ev: Event) -> None:
         # The target app's result line arrived after the event was stored.
