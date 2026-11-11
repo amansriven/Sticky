@@ -15,6 +15,7 @@ import plistlib
 import re
 import subprocess
 import sys
+import time
 from pathlib import Path
 from typing import Callable, Sequence
 
@@ -92,31 +93,54 @@ def _domain() -> str:
     return f"gui/{os.getuid()}"
 
 
+def _stop(run: Runner, sleep: Callable[[float], None], timeout: float = 10.0) -> None:
+    """Boot the agent out and wait until launchd has really unloaded it.
+
+    ``bootout`` returns before the old service is gone. Bootstrapping again
+    straight away fails with "Bootstrap failed: 5: Input/output error"
+    (seen on macOS 27.2.1 when reinstalling), which left no recorder running.
+    """
+    run(["/bin/launchctl", "bootout", f"{_domain()}/{LABEL}"])
+    waited = 0.0
+    while is_loaded(run) and waited < timeout:
+        sleep(0.2)
+        waited += 0.2
+
+
 def install(
     python: str = sys.executable,
     db_path: str | None = None,
     home: Path | None = None,
     run: Runner = _run,
+    sleep: Callable[[float], None] = time.sleep,
+    attempts: int = 5,
 ) -> Path:
     path = plist_path(home)
     path.parent.mkdir(parents=True, exist_ok=True)
     log_path(home).parent.mkdir(parents=True, exist_ok=True)
     if is_loaded(run):
-        run(["/bin/launchctl", "bootout", f"{_domain()}/{LABEL}"])
+        _stop(run, sleep)
     with open(path, "wb") as f:
         plistlib.dump(build_plist(python, db_path, home), f)
-    result = run(["/bin/launchctl", "bootstrap", _domain(), str(path)])
-    if result.returncode != 0:
-        raise RuntimeError(f"launchctl bootstrap failed: {result.stderr.strip() or result.returncode}")
-    return path
+    for attempt in range(attempts):
+        result = run(["/bin/launchctl", "bootstrap", _domain(), str(path)])
+        if result.returncode == 0:
+            return path
+        if attempt < attempts - 1:
+            sleep(1.0)  # launchd may still be tearing down the old service
+    raise RuntimeError(
+        f"launchctl bootstrap failed: {result.stderr.strip() or result.returncode}. "
+        f"Try again in a few seconds, or run: launchctl bootstrap {_domain()} {path}"
+    )
 
 
-def uninstall(home: Path | None = None, run: Runner = _run) -> bool:
+def uninstall(home: Path | None = None, run: Runner = _run,
+              sleep: Callable[[float], None] = time.sleep) -> bool:
     """Stop and remove the agent. Returns False if it wasn't installed."""
     path = plist_path(home)
     was_there = path.exists() or is_loaded(run)
     if is_loaded(run):
-        run(["/bin/launchctl", "bootout", f"{_domain()}/{LABEL}"])
+        _stop(run, sleep)
     if path.exists():
         path.unlink()
     return was_there

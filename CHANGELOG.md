@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.1.1
+
+- **Fix:** running `sticky install-agent` again (for example after `brew upgrade`) could fail with `Bootstrap failed: 5: Input/output error` and leave no recorder running. Sticky now waits for launchd to finish unloading the old agent, and retries starting the new one. If it still can't, the error shows the `launchctl` command to run by hand.
+- If you hit this on 0.1.0, upgrade and run `sticky install-agent` again.
+
 ## 0.1.0
 
 First release. Command-line only; a menu bar app is planned.

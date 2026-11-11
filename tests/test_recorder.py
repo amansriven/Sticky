@@ -185,19 +185,37 @@ class ExpireTests(unittest.TestCase):
 
 
 class FakeLaunchctl:
-    def __init__(self, loaded=False):
+    """Behaves like launchctl on macOS 27.2.1: after ``bootout`` the service
+    keeps reporting as loaded for ``unload_lag`` more ``print`` calls, and
+    ``bootstrap`` fails with error 5 until it is really gone."""
+
+    def __init__(self, loaded=False, unload_lag=0):
         self.loaded = loaded
+        self.unload_lag = unload_lag
+        self.pending_unload = 0
         self.calls = []
 
     def __call__(self, cmd):
         self.calls.append(cmd[1])
         if cmd[1] == "print":
+            if self.pending_unload:
+                self.pending_unload -= 1
+                if not self.pending_unload:
+                    self.loaded = False
             return CompletedProcess(cmd, 0 if self.loaded else 113, "", "")
-        if cmd[1] == "bootstrap":
-            self.loaded = True
         if cmd[1] == "bootout":
-            self.loaded = False
+            if self.unload_lag:
+                self.pending_unload = self.unload_lag
+            else:
+                self.loaded = False
+        if cmd[1] == "bootstrap":
+            if self.loaded:
+                return CompletedProcess(cmd, 5, "", "Bootstrap failed: 5: Input/output error")
+            self.loaded = True
         return CompletedProcess(cmd, 0, "", "")
+
+
+NO_SLEEP = lambda s: None  # noqa: E731
 
 
 class AgentTests(unittest.TestCase):
@@ -257,23 +275,45 @@ class AgentTests(unittest.TestCase):
 
     def test_reinstall_boots_out_first(self):
         fake = FakeLaunchctl(loaded=True)
-        agent.install(python="/usr/bin/python3", home=self.home, run=fake)
-        self.assertEqual(fake.calls, ["print", "bootout", "bootstrap"])
+        agent.install(python="/usr/bin/python3", home=self.home, run=fake, sleep=NO_SLEEP)
+        self.assertEqual(fake.calls, ["print", "bootout", "print", "bootstrap"])
+
+    def test_reinstall_waits_for_old_agent_to_unload(self):
+        # The 0.1.0 bug: bootstrap straight after bootout failed with error 5.
+        fake = FakeLaunchctl(loaded=True, unload_lag=3)
+        slept = []
+        agent.install(python="/usr/bin/python3", home=self.home, run=fake, sleep=slept.append)
+        self.assertTrue(fake.loaded)
+        self.assertEqual(fake.calls[-1], "bootstrap")
+        self.assertEqual(fake.calls.count("bootstrap"), 1)  # waited instead of failing
+        self.assertTrue(slept)
+
+    def test_bootstrap_is_retried(self):
+        results = iter([5, 5, 0])
+
+        def flaky(cmd):
+            if cmd[1] == "print":
+                return CompletedProcess(cmd, 113, "", "")
+            code = next(results) if cmd[1] == "bootstrap" else 0
+            return CompletedProcess(cmd, code, "", "Bootstrap failed: 5: Input/output error" if code else "")
+
+        agent.install(python="/usr/bin/python3", home=self.home, run=flaky, sleep=NO_SLEEP)
 
     def test_uninstall_removes_everything(self):
         fake = FakeLaunchctl()
         path = agent.install(python="/usr/bin/python3", home=self.home, run=fake)
-        self.assertTrue(agent.uninstall(home=self.home, run=fake))
+        self.assertTrue(agent.uninstall(home=self.home, run=fake, sleep=NO_SLEEP))
         self.assertFalse(path.exists())
         self.assertFalse(fake.loaded)
-        self.assertFalse(agent.uninstall(home=self.home, run=fake))
+        self.assertFalse(agent.uninstall(home=self.home, run=fake, sleep=NO_SLEEP))
 
     def test_failed_bootstrap_raises(self):
         def failing(cmd):
             code = 113 if cmd[1] == "print" else 5
             return CompletedProcess(cmd, code, "", "Bootstrap failed: 5: Input/output error")
-        with self.assertRaises(RuntimeError):
-            agent.install(python="/usr/bin/python3", home=self.home, run=failing)
+        with self.assertRaises(RuntimeError) as ctx:
+            agent.install(python="/usr/bin/python3", home=self.home, run=failing, sleep=NO_SLEEP)
+        self.assertIn("launchctl bootstrap gui/", str(ctx.exception))
 
 
 class LogCommandTests(TempDB):
