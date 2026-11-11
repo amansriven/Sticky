@@ -27,17 +27,20 @@ Then ask why an app keeps being asked, or is refused:
 $ sticky why brokentool
 BrokenTool  (dev.sticky.brokentool 1.0)
   Identity: ⚠ Ad-hoc signed: no developer identity. Its signature is a hash of this exact build, …
-  Builds seen: 2, each with a different identity.
+  Builds seen: 3, each with a different identity.
 
-  Automation → com.apple.finder   (4 requests)
-    ! Kept its permission after a rebuild
-      You approved the build signed as cdhash H"90e03ff5…" on 11-11 05:16.
-      …
+  Accessibility   (9 requests)
+    ✗ Switched on, but not for this build
+      Your approval is saved for the build signed as cdhash H"970b1915…".
+      The current build is signed as cdhash H"c1296205…", which doesn't match it, so macOS denies access without asking.
+      It worked until 11-11 06:30; 2 requests since were denied.
+      System Settings → Privacy & Security → Accessibility may still show it switched on.
+      Fix: Re-approve this build: in System Settings → Accessibility, remove the app with − and add it again with + …
 ```
 
 | Command | What it does |
 |---|---|
-| `sticky why APP` | Explain each permission an app asked for: re-prompts and their cause, silent denials, prompt storms, with fixes |
+| `sticky why APP` | Explain each permission an app asked for: re-prompts and their cause, silent denials (including "switched on, but not for this build"), prompt storms, with fixes |
 | `sticky inspect PATH\|BUNDLE-ID` | Signing identity, and whether grants will survive updates |
 | `sticky install-agent` | Record in the background from login (`--dry-run` prints the plist and changes nothing) |
 | `sticky uninstall-agent` | Stop recording and remove the agent; recorded data is kept |
@@ -86,9 +89,9 @@ PYTHONPATH=src python3 -m unittest discover -s tests -v
 | `src/sticky/recorder.py` | Runs `log stream`, stores decisions, restarts with backoff, heartbeat |
 | `src/sticky/agent.py` | Installs the recorder as a LaunchAgent |
 | `src/sticky/identity.py` | Reads an app's signing identity with `codesign` |
-| `src/sticky/diagnose.py` | Diagnosis rules R1–R5 |
+| `src/sticky/diagnose.py` | Diagnosis rules R1–R6 |
 | `src/sticky/cli.py` | The `sticky` command |
-| `tools/brokentool/` | A deliberately fragile ad-hoc signed app for testing (`build.sh [tag]`, then `run.sh`) |
+| `tools/brokentool/` | A deliberately fragile ad-hoc signed app for testing (`build.sh [tag]`, then `run.sh` for Automation or `run.sh ax` for Accessibility) |
 | `tests/fixtures/` | Real logs recorded on macOS 27.2.1, with the username replaced by `user` |
 | `sticky-design.md` | Architecture, diagnosis rules and milestones |
 

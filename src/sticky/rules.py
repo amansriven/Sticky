@@ -66,6 +66,18 @@ REQUIREMENTS_MATCH = re.compile(
     r"target Requirements match for (?P<client>.*?) : (?P<target>\S+)"
 )
 USAGE_STRING = re.compile(r"found usage string")
+# The current build checked against a requirement. "anchor apple" is only the
+# is-it-an-Apple-binary check; any other requirement is the one *saved with
+# the grant*. status 0 = matches; -67050 (errSecCSReqFailed) = this build is
+# not the one that was approved, so the grant doesn't apply.
+#   "-[TCCDAccessIdentity matchesCodeRequirement:]: SecStaticCodeCheckValidity()
+#    static code (0x…) from dev.x : cdhash H"970b…"; status: -67050"
+STORED_REQUIREMENT_CHECK = re.compile(
+    r"matchesCodeRequirement:\]: SecStaticCodeCheckValidity\(\) static code \(\S+\) "
+    r"from (?P<identifier>.+?) : (?P<requirement>.+); status: (?P<status>-?\d+)"
+)
+PLATFORM_REQUIREMENT = "anchor apple"
+REQUIREMENT_FAILED = -67050
 
 # -- Identity of the app asking ---------------------------------------------
 BUNDLE = re.compile(
@@ -102,7 +114,8 @@ CLIENT_RESULT = re.compile(
 FACT_PATTERNS = (
     REQUEST, REPLY, AUTHREQ_CTX, AUTHREQ_SUBJECT, AUTHREQ_RESULT,
     HANDLING_INDIRECT, HANDLING_DIRECT, POLICY, ENTITLED, PROMPTING, PUBLISH_CHANGE,
-    REQUIREMENTS_MATCH, USAGE_STRING, BUNDLE, DESIGNATED_REQUIREMENT, IDENTITY,
+    REQUIREMENTS_MATCH, USAGE_STRING, STORED_REQUIREMENT_CHECK, BUNDLE,
+    DESIGNATED_REQUIREMENT, IDENTITY,
     ATTRIBUTION_LINE,
 )
 

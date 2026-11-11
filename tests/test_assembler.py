@@ -189,6 +189,18 @@ class DirectRequestTests(unittest.TestCase):
         self.assertEqual(user_side.outcome, "undetermined")
 
 
+class StoredRequirementTests(unittest.TestCase):
+    def test_fixture_requirement_check_matches(self):
+        events, _ = load("compact-prompts-allowed.log")
+        checked = [e for e in events if e.client_id == "com.anthropic.claudefordesktop"
+                   and e.stored_dr is not None]
+        self.assertTrue(checked)
+        for e in checked:
+            self.assertTrue(e.stored_dr.startswith('identifier "com.anthropic.claudefordesktop"'))
+            self.assertIn("Q6L2SF6YDW", e.stored_dr)
+            self.assertEqual(e.stored_dr_status, 0)
+
+
 class SyntheticTests(unittest.TestCase):
     """Edge cases that the recorded logs don't happen to contain."""
 
@@ -225,6 +237,25 @@ class SyntheticTests(unittest.TestCase):
         self.assertEqual(ev.client_path, "/Applications/Tool.app")
         self.assertEqual(ev.target_id, "com.apple.Music")  # from the "accessing" process
         self.assertEqual(ev.outcome, "undetermined")
+
+    def test_rebuilt_app_fails_saved_requirement(self):
+        # Lines as logged on macOS 27.2.1 for BrokenTool ax2 (Accessibility).
+        exe = "/Users/user/Projects/Sticky/tools/brokentool/build/BrokenTool.app/Contents/MacOS/BrokenTool"
+        (ev,), _ = self.feed([
+            ("tccd", 1, 9, "REQUEST: tccd_uid=0, sender_pid=85564, sender_uid=501, sender_auid=501, function=TCCAccessRequest, msgID=85564.2"),
+            ("tccd", 1, 9, "AUTHREQ_CTX: msgID=85564.2, function=<private>, service=kTCCServiceAccessibility, preflight=yes, query=1, client_dict=(null), daemon_dict=<private>"),
+            ("tccd", 1, 9, f"AUTHREQ_ATTRIBUTION: msgID=85564.2, attribution={{requesting={{TCCDProcess: identifier=dev.sticky.brokentool, pid=85564, auid=501, euid=501, binary_path={exe}}}, }},"),
+            ("tccd", 1, 9, "AUTHREQ_SUBJECT: msgID=85564.2, subject=dev.sticky.brokentool,"),
+            ("tccd", 1, 9, "-[TCCDAccessIdentity matchesCodeRequirement:]: SecStaticCodeCheckValidity() static code (0x7526d5c300) from dev.sticky.brokentool : anchor apple; status: -67050"),
+            ("tccd", 1, 9, '-[TCCDAccessIdentity matchesCodeRequirement:]: SecStaticCodeCheckValidity() static code (0x7526d5c300) from dev.sticky.brokentool : cdhash H"970b19153fa85ff6613a459cb7a05ff86c0e87c2"; status: -67050'),
+            ("tccd", 1, 9, "AUTHREQ_RESULT: msgID=85564.2, authValue=0, authReason=4, authVersion=1, desired_auth=0, error=(null),"),
+            ("tccd", 1, 9, "REPLY: (0) function=TCCAccessRequest, msgID=85564.2"),
+        ])
+        self.assertEqual(ev.client_id, "dev.sticky.brokentool")
+        self.assertEqual(ev.client_path, "/Users/user/Projects/Sticky/tools/brokentool/build/BrokenTool.app")
+        self.assertEqual(ev.stored_dr, 'cdhash H"970b19153fa85ff6613a459cb7a05ff86c0e87c2"')
+        self.assertEqual(ev.stored_dr_status, -67050)  # the "anchor apple" check is ignored
+        self.assertEqual(ev.outcome, "denied")
 
     def test_client_result_links_to_sender(self):
         events, asm = self.feed([

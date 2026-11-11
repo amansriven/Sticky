@@ -255,7 +255,7 @@ def cmd_why(args: argparse.Namespace) -> int:
         problems = 0
         for client_id, items in by_client.items():
             latest = max((e for g, _ in items for e in g.events), key=lambda e: e["ts_start"])
-            path = latest.get("client_path")
+            path = latest.get("client_path") or store.latest_path_for(client_id)
             ident = inspect(path) if path else None
             name = (ident.name if ident and ident.exists else None) or latest.get("client_name") or client_id
             version = latest.get("client_version") or (ident.version if ident else None)

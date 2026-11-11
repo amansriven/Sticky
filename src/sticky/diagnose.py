@@ -20,10 +20,16 @@ R5  Kept its grant after a rebuild (info): the app was rebuilt with a
     it without asking, and the log didn't show the usual "Requirements
     match" check. Observed on macOS 27.2.1 for Automation with an ad-hoc
     signed app (week 3 test): the rebuild did NOT cause a new prompt.
+R6  Switched on, but not for this build: tccd checked the current build
+    against the requirement saved with the grant and it failed (status
+    -67050), so access is denied without asking, while System Settings
+    still shows the app switched on. Observed on macOS 27.2.1 for
+    Accessibility after rebuilding an ad-hoc signed app (BrokenTool ax1 ->
+    ax2). Replaces R2 when it applies.
 
-Only requests that can prompt are considered: entitlement shortcuts,
-preflight checks, and services that never prompt (Developer Tools, which
-syspolicyd checks on every app launch) are ignored.
+Ignored: entitlement shortcuts, "would this prompt?" preflight checks that
+decided nothing, and services that never prompt (Developer Tools, which
+syspolicyd checks on every app launch).
 """
 
 from __future__ import annotations
@@ -140,7 +146,9 @@ def _counts_as_decision(e: Mapping) -> bool:
         and e.get("service") not in NON_PROMPTING_SERVICES
         and e.get("final_auth") is not None
         and not e.get("entitled")
-        and not e.get("preflight")
+        # Preflight checks that decided something count: Accessibility and
+        # similar services are only ever checked this way.
+        and not (e.get("preflight") and e.get("final_auth") == 1)
     )
 
 
@@ -192,9 +200,14 @@ def diagnose_group(g: Group, all_groups: list[Group] | None = None,
         if other is not None:
             findings.append(_blamed_finding(first, other, base))
 
-    # R2: the saved answer is "deny".
+    # R6: denied because this build doesn't match the saved requirement.
     last = g.latest
-    if last.get("final_auth") == 0:
+    r6 = _not_for_this_build(g, base)
+    if r6 is not None:
+        findings.append(r6)
+
+    # R2: the saved answer is "deny".
+    if last.get("final_auth") == 0 and r6 is None:
         denied_at = next(
             (e for e in reversed(g.events) if e.get("prompted") and e.get("final_auth") == 0), None
         )
@@ -237,13 +250,22 @@ def diagnose_group(g: Group, all_groups: list[Group] | None = None,
 
     if not any(f.severity == "problem" for f in findings) and last.get("final_auth") == 2 \
             and not any(f.rule == "R4" for f in findings):
-        matched = sum(1 for e in g.events if e.get("requirements_match"))
         n = len(g.events)
-        findings.append(Finding(
-            "OK", "ok", **base, when=last["ts_start"], title="Allowed",
-            detail=[f"Saved grant matched on {matched} of {n} recorded request{'s' if n != 1 else ''}."
-                    if matched else f"{n} recorded request{'s' if n != 1 else ''}, all allowed."],
-        ))
+        allowed = sum(1 for e in g.events if e.get("final_auth") == 2)
+        # Automation logs "Requirements match"; direct requests log a stored-requirement check.
+        matched = sum(1 for e in g.events
+                      if e.get("requirements_match") or e.get("stored_dr_status") == 0)
+        detail = [f"{allowed} of {n} recorded request{'s' if n != 1 else ''} allowed"
+                  + (f"; the saved approval matched the app on {matched}." if matched else ".")]
+        denied = [e for e in g.events if e.get("final_auth") == 0]
+        if denied:
+            since = next(e for e in g.events
+                         if e["ts_start"] > denied[-1]["ts_start"] and e.get("final_auth") == 2)
+            detail.append(f"Denied {len(denied)} time{'s' if len(denied) != 1 else ''} before, "
+                          f"last on {_when(denied[-1]['ts_start'])}; allowed again since "
+                          f"{_when(since['ts_start'])}.")
+        findings.append(Finding("OK", "ok", **base, when=last["ts_start"], title="Allowed",
+                                detail=detail))
     return findings
 
 
@@ -290,6 +312,50 @@ def _why_reprompted(g: Group, ev: dict, earlier: list[dict], settled: dict,
                                  "back on in System Settings, or by a management profile."],
                    fix=["If this keeps happening on a managed Mac, ask your IT team whether a "
                         "profile resets privacy permissions."])
+
+
+def _not_for_this_build(g: Group, base: dict) -> Finding | None:
+    from .rules import REQUIREMENT_FAILED
+
+    last = g.latest
+    if last.get("final_auth") != 0 or last.get("stored_dr_status") != REQUIREMENT_FAILED:
+        return None
+    first_fail = next(e for e in g.events
+                      if e.get("final_auth") == 0 and e.get("stored_dr_status") == REQUIREMENT_FAILED
+                      and e["ts_start"] >= _last_allowed_ts(g))
+    allowed_before = [e for e in g.events
+                      if e["ts_start"] < first_fail["ts_start"] and e.get("final_auth") == 2]
+    n = sum(1 for e in g.events if e["ts_start"] >= first_fail["ts_start"]
+            and e.get("final_auth") == 0)
+    name = service_name(g.service)
+    detail = [f"Your approval is saved for the build signed as {_short_dr(last.get('stored_dr'))}."]
+    if last.get("client_dr"):
+        detail.append(f"The current build is signed as {_short_dr(last['client_dr'])}, which "
+                      f"doesn't match it, so macOS denies access without asking.")
+    else:
+        detail.append("The current build doesn't match it, so macOS denies access without asking.")
+    if allowed_before:
+        detail.append(f"It worked until {_when(allowed_before[-1]['ts_start'])}; "
+                      f"{n} request{'s' if n != 1 else ''} since {'were' if n != 1 else 'was'} "
+                      f"denied.")
+    detail.append(f"System Settings → Privacy & Security → {name} may still show it switched on.")
+    # Verified on macOS 27.2.1 (BrokenTool ax2): switching it off and on keeps
+    # the old build's requirement; removing and re-adding saves the new one.
+    fix = [f"Re-approve this build: in System Settings → {name}, remove the app with − and add "
+           f"it again with + (open \"{settings_url(g.service)}\"). Switching it off and on "
+           f"isn't enough: the approval keeps naming the old build."]
+    if cmd := tccutil_command(g.service, g.client_id):
+        fix.append(f"Or clear the stale approval from Terminal ({cmd}), then add it again.")
+    if (last.get("client_dr") or last.get("stored_dr") or "").startswith("cdhash"):
+        fix.append("To stop this after every rebuild, sign with a stable identity (Developer ID "
+                   "or Apple Development certificate) instead of ad-hoc.")
+    return Finding("R6", "problem", **base, when=last["ts_start"],
+                   title="Switched on, but not for this build", detail=detail, fix=fix)
+
+
+def _last_allowed_ts(g: Group) -> str:
+    allowed = [e["ts_start"] for e in g.events if e.get("final_auth") == 2]
+    return allowed[-1] if allowed else ""
 
 
 def _kept_after_rebuild(g: Group, builds: list[Mapping], base: dict) -> Finding | None:

@@ -149,6 +149,19 @@ class StoreTests(TempDB):
         newest = self.store.query_events()[-1]["ts_start"]
         self.assertEqual(rows[-1]["ts_start"], newest)
 
+    def test_old_database_gets_new_columns(self):
+        import sqlite3
+
+        old = Path(self.tmp.name) / "old.db"
+        db = sqlite3.connect(old)
+        db.execute("CREATE TABLE events (id INTEGER PRIMARY KEY, run_id INTEGER, ts_start TEXT, "
+                   "tccd_pid INTEGER, tid INTEGER, UNIQUE (tccd_pid, tid, ts_start))")
+        db.close()
+        with Store(old) as store:
+            cols = {r[1] for r in store.db.execute("PRAGMA table_info(events)")}
+        self.assertIn("stored_dr", cols)
+        self.assertIn("stored_dr_status", cols)
+
     def test_purge_removes_old_events(self):
         self.replay()  # fixture events are from 2026-11-11
         old = ts_ago(timedelta(days=45))[:20]  # "YYYY-MM-DD HH:MM:SS."

@@ -47,7 +47,7 @@ class RuleTests(unittest.TestCase):
         events = [ev("10:00:00", "prompted-allowed", dr=TEAM_DR), ev("10:05:00", "allowed")]
         ((g, (f,)),) = diagnose(events)
         self.assertEqual(f.rule, "OK")
-        self.assertIn("matched on 1 of 2", f.detail[0])
+        self.assertEqual(f.detail, ["2 of 2 recorded requests allowed; the saved approval matched the app on 1."])
 
     def test_r1b_signing_identity_changed(self):
         events = [
@@ -142,6 +142,48 @@ class RuleTests(unittest.TestCase):
         same = {CLAUDE: [{"dr": v1, "first_seen": "2026-11-11 05:16:35.000"}]}
         self.assertEqual(rules(events), ["OK"])  # no build history at all
         self.assertEqual([f.rule for _, fs in diagnose(events, same) for f in fs], ["OK"])
+
+    def test_r6_switched_on_but_not_for_this_build(self):
+        # Mirrors BrokenTool ax1 -> ax2 on macOS 27.2.1 (Accessibility).
+        ax1, ax2 = 'cdhash H"970b1915"', 'cdhash H"c1296205"'
+        acc = dict(service="kTCCServiceAccessibility", target=None, preflight=True)
+        events = [
+            ev("06:29:06", "undetermined", **acc),           # not yet switched on
+            dict(ev("06:29:45", "allowed", **acc), stored_dr=ax1, stored_dr_status=0),
+            dict(ev("06:30:16", "denied", dr=ax2, **acc), stored_dr=ax1, stored_dr_status=-67050),
+            dict(ev("06:30:18", "denied", dr=ax2, **acc), stored_dr=ax1, stored_dr_status=-67050),
+        ]
+        ((g, findings),) = diagnose(events)
+        self.assertEqual([f.rule for f in findings], ["R6"])  # replaces R2
+        f = findings[0]
+        self.assertIn(ax1, f.detail[0])
+        self.assertIn(ax2, f.detail[1])
+        self.assertIn("worked until 11-11 06:29; 2 requests since were denied", f.detail[2])
+        self.assertIn("remove the app with −", f.fix[0])
+        self.assertIn("off and on isn't enough", f.fix[0])
+        self.assertIn("tccutil reset Accessibility", f.fix[1])
+        self.assertIn("stable identity", f.fix[2])
+
+    def test_r6_clears_after_reapproval(self):
+        # After removing and re-adding, tccd saved ax2's requirement (status 0).
+        ax1, ax2 = 'cdhash H"970b1915"', 'cdhash H"c1296205"'
+        acc = dict(service="kTCCServiceAccessibility", target=None, preflight=True)
+        events = [
+            dict(ev("06:29:45", "allowed", **acc), stored_dr=ax1, stored_dr_status=0),
+            dict(ev("06:34:31", "denied", dr=ax2, **acc), stored_dr=ax1, stored_dr_status=-67050),
+            dict(ev("06:35:40", "allowed", **acc), stored_dr=ax2, stored_dr_status=0),
+        ]
+        ((g, (f,)),) = diagnose(events)
+        self.assertEqual(f.rule, "OK")
+        self.assertEqual(f.detail, [
+            "2 of 3 recorded requests allowed; the saved approval matched the app on 2.",
+            "Denied 1 time before, last on 11-11 06:34; allowed again since 11-11 06:35.",
+        ])
+
+    def test_preflight_decisions_count(self):
+        acc = dict(service="kTCCServiceAccessibility", target=None, preflight=True)
+        self.assertEqual(rules([ev("10:00:00", "allowed", **acc)]), ["OK"])
+        self.assertEqual(rules([ev("10:00:00", "undetermined", **acc)]), [])
 
     def test_fix_helpers(self):
         self.assertEqual(settings_url("kTCCServiceCamera"),

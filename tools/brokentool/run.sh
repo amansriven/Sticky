@@ -1,9 +1,11 @@
 #!/bin/bash
 # Launch BrokenTool through LaunchServices, so macOS holds BrokenTool itself
 # responsible (not your terminal). Waits for it to finish and prints its output.
+#   tools/brokentool/run.sh        Automation (asks Finder)
+#   tools/brokentool/run.sh ax     Accessibility
 set -euo pipefail
 here="$(cd "$(dirname "$0")" && pwd)"
 out="$(mktemp -t brokentool)"
-open -W -n --stdout "$out" --stderr "$out" "$here/build/BrokenTool.app"
+open -W -n --stdout "$out" --stderr "$out" "$here/build/BrokenTool.app" --args "$@"
 cat "$out"
 rm -f "$out"

@@ -32,13 +32,13 @@ EVENT_COLUMNS = (
     "target_id", "target_name", "client_name",
     "auth_before", "auth_result", "prompted", "auth_after", "client_result",
     "requirements_match", "usage_string", "policy_allowed", "entitled",
-    "final_auth", "outcome",
+    "final_auth", "outcome", "stored_dr", "stored_dr_status",
 )
 TEXT_COLUMNS = {
     "ts_start", "ts_end", "msg_id", "tccd_scope", "function", "ended_by", "service",
     "client_id", "client_path", "client_version", "client_dr", "responsible_id",
     "responsible_path", "requesting_id", "accessing_id", "target_id", "target_name",
-    "client_name", "outcome",
+    "client_name", "outcome", "stored_dr",
 }
 _EVENT_COLUMN_DEFS = ",\n    ".join(
     f"{c} {'TEXT' if c in TEXT_COLUMNS else 'INTEGER'}" for c in EVENT_COLUMNS
@@ -67,8 +67,6 @@ CREATE TABLE IF NOT EXISTS events (
     {_EVENT_COLUMN_DEFS},
     UNIQUE (tccd_pid, tid, ts_start)
 );
-CREATE INDEX IF NOT EXISTS events_ts ON events (ts_start);
-CREATE INDEX IF NOT EXISTS events_key ON events (client_id, service, target_id, ts_start);
 
 CREATE TABLE IF NOT EXISTS identities (     -- one row per distinct build seen
     id          INTEGER PRIMARY KEY,
@@ -85,13 +83,20 @@ CREATE TABLE IF NOT EXISTS identities (     -- one row per distinct build seen
     last_seen   TEXT NOT NULL,
     UNIQUE (code_path, cdhash)
 );
-CREATE INDEX IF NOT EXISTS identities_client ON identities (client_id, first_seen);
 
 CREATE TABLE IF NOT EXISTS unrecognised (
     template TEXT PRIMARY KEY,  -- formatString (ndjson) or message prefix
     count    INTEGER NOT NULL,
     first_seen TEXT, last_seen TEXT
 );
+"""
+
+
+# Created after migrations, since they may name columns older databases lack.
+_INDEXES = """
+CREATE INDEX IF NOT EXISTS events_ts ON events (ts_start);
+CREATE INDEX IF NOT EXISTS events_key ON events (client_id, service, target_id, ts_start);
+CREATE INDEX IF NOT EXISTS identities_client ON identities (client_id, first_seen);
 """
 
 
@@ -133,10 +138,20 @@ class Store:
         self.db.execute("PRAGMA journal_mode=WAL")
         self.db.execute("PRAGMA synchronous=NORMAL")
         self.db.executescript(_SCHEMA)
+        self._add_missing_columns()
+        self.db.executescript(_INDEXES)
         self.db.execute(
             "INSERT OR IGNORE INTO meta (key, value) VALUES ('schema_version', ?)",
             (str(SCHEMA_VERSION),),
         )
+
+    def _add_missing_columns(self) -> None:
+        """Migrate databases created by older versions: add new event columns."""
+        have = {row[1] for row in self.db.execute("PRAGMA table_info(events)")}
+        for col in EVENT_COLUMNS:
+            if col not in have:
+                kind = "TEXT" if col in TEXT_COLUMNS else "INTEGER"
+                self.db.execute(f"ALTER TABLE events ADD COLUMN {col} {kind}")
 
     def close(self) -> None:
         self.db.close()

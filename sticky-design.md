@@ -271,7 +271,28 @@ Built `sticky inspect`, `sticky why`, identity snapshots and rules R1a–R1d, R2
 - **The planned R1b scenario didn't happen.** For Automation, macOS 27.2.1 carried an ad-hoc app's grant over to a rebuild with a different requirement. The R1b rule stays (it's unit-tested), but it's unconfirmed live. The new R5 (info) rule reports what actually happened.
 - tccd logs an app's signing requirement only when it prompts. So R1b compares the requirement from the original prompt with the one from the new prompt, and R5 compares the original prompt with identity snapshots.
 - syspolicyd checks **Developer Tools** on every app launch, and the answer defaults to deny without a prompt. Diagnoses now ignore it so it doesn't show up as a false "silently denied".
-- **Next to test:** does an ad-hoc rebuild lose **Accessibility** or **Screen Recording**? Developers often report having to re-add their app there after rebuilding. Neither shows a prompt, so the rebuild would show up as a silent denial while System Settings still shows the toggle on. That would make R2/R5 more useful.
+### Accessibility after a rebuild (2026-11-11, macOS 27.2.1): **it breaks**
+
+`tools/brokentool/run.sh ax` calls `AXIsProcessTrustedWithOptions` (a preflight check, logged as `TCCAccessRequest` with `preflight=yes` by the system tccd), then tries to read the focused app.
+
+| Step | Identity | Result |
+|---|---|---|
+| ax1, before you switched it on | `cdhash H"970b1915…"` | `AXIsProcessTrusted: no`; recorded as not decided |
+| ax1, after you switched it on | same | **trusted**; `matchesCodeRequirement … cdhash H"970b1915…"; status: 0` |
+| ax2 (rebuilt, identical code) | `cdhash H"c1296205…"` | **not trusted, no prompt**, switch still on; `matchesCodeRequirement … cdhash H"970b1915…"; status: -67050` |
+
+- tccd checks the running build against the requirement **saved with the grant**, and logs both that requirement and the result. -67050 is `errSecCSReqFailed`. This is direct evidence, so new rule **R6, "switched on, but not for this build"**, uses it instead of inferring from snapshots. R6 replaces R2 when it applies.
+- The denied ax2 requests also logged ax2's own requirement, so R6 can show both hashes.
+- **Automation (R5) and Accessibility (R6) behave differently** after the same kind of rebuild: Automation carried the grant over, Accessibility didn't.
+- Accessibility checks are always preflight. Diagnoses now count preflight checks that decided something (allowed/denied) and still ignore those that decided nothing.
+- In Accessibility requests the app is the *requesting* process, with no *responsible* one. The app's path now comes from that process's `binary_path`, stored as the enclosing `.app`.
+- BrokenTool's attempt to read the focused app failed with `AXError -25204` even while trusted. It's probably a limit of a windowless test app, not a permission problem, so the test relies on `AXIsProcessTrusted` and tccd's decision.
+- **Which re-approval fixes it (verified):**
+  - **Switching it off and on: no effect.** ax2 was still denied, and the saved requirement still named ax1 (`status -67050`).
+  - **Removing it with − and adding it with +: fixed.** ax2 became trusted, and the saved requirement became ax2's own `cdhash H"c1296205…"` (`status 0`).
+
+  R6's fix text now says this. The `tccutil reset` alternative is still unverified.
+- **Still untested:** Screen Recording.
 
 ---
 

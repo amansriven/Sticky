@@ -31,6 +31,7 @@ from dataclasses import dataclass, field
 from typing import Callable, Iterable, Iterator
 
 from . import rules
+from .identity import code_path_for
 from .logsource import LogRecord
 from .rules import public
 
@@ -83,6 +84,8 @@ class Event:
     usage_string: bool = False
     policy_allowed: bool | None = None
     entitled: bool = False  # decided by a built-in entitlement, never prompts
+    stored_dr: str | None = None  # requirement saved with the grant
+    stored_dr_status: int | None = None  # 0 = this build matches it; -67050 = doesn't
 
     # Bookkeeping
     lines: int = 0
@@ -92,6 +95,7 @@ class Event:
     _bundle_id: str | None = field(default=None, repr=False)
     _drs: dict = field(default_factory=dict, repr=False)
     _identity_types: dict = field(default_factory=dict, repr=False)
+    _binary_paths: dict = field(default_factory=dict, repr=False)  # identifier -> binary_path
     _row_id: int | None = field(default=None, repr=False)  # set by a store
 
     # -- Derived ------------------------------------------------------------
@@ -141,6 +145,14 @@ class Event:
         self.client_id = next((c for c in map(public, candidates) if c), None)
         if self.client_path is None:
             self.client_path = self.responsible_path
+        if self.client_path is None and self.client_id in self._binary_paths:
+            # e.g. Accessibility checks, where the app is the requesting
+            # process and no "responsible" process is logged.
+            self.client_path = self._binary_paths[self.client_id]
+        if self.client_path is not None:
+            # Always store the .app bundle, not the executable inside it, so
+            # paths compare equal across services.
+            self.client_path = str(code_path_for(self.client_path))
         if self.client_id is not None:
             self.client_dr = self._drs.get(self.client_id)
             self.client_type = self._identity_types.get(self.client_id)
@@ -337,6 +349,15 @@ class Assembler:
         if rules.USAGE_STRING.search(msg):
             matched = True
             ev.usage_string = True
+        if m := rules.STORED_REQUIREMENT_CHECK.search(msg):
+            matched = True
+            requirement = m["requirement"].strip()
+            if requirement != rules.PLATFORM_REQUIREMENT:
+                status = int(m["status"])
+                ev.stored_dr = ev.stored_dr or requirement
+                # Keep a failure if any check of this request failed.
+                if ev.stored_dr_status in (None, 0):
+                    ev.stored_dr_status = status
 
         if m := rules.BUNDLE.search(msg):
             matched = True
@@ -354,6 +375,8 @@ class Assembler:
             matched = True
             for role in rules.ATTRIBUTION_ROLE.finditer(msg):
                 ident = public(role["identifier"])
+                if ident and (b := rules.BINARY_PATH.search(role["rest"])):
+                    ev._binary_paths.setdefault(ident, b["path"])
                 if role["role"] == "responsible":
                     ev.responsible_id = ev.responsible_id or ident
                     if p := rules.RESPONSIBLE_PATH.search(role["rest"]):
