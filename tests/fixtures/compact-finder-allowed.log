@@ -1,0 +1,598 @@
+Filtering the log data using "subsystem == "com.apple.TCC""
+Timestamp               Ty Process[PID:TID]
+2026-11-11 04:10:29.905 I  osascript[88272:217323] [com.apple.TCC:access] SEND: 0/7 synchronous to com.apple.tccd.system: request: msgID=88272.1, function=TCCAccessRequest, service=kTCCServiceListenEvent,
+2026-11-11 04:10:29.906 Df tccd[473:216edd] [com.apple.TCC:access] REQUEST: tccd_uid=0, sender_pid=88272, sender_uid=501, sender_auid=501, function=TCCAccessRequest, msgID=88272.1
+2026-11-11 04:10:29.906 I  tccd[473:216edd] [com.apple.TCC:access] REQUEST_MSG: msgID=88272.1, msg={
+	require_purpose=<xpc_null>
+	service="kTCCServiceListenEvent"
+	function="TCCAccessRequest"
+	preflight=true
+	target_token={NULL}
+	TCCD_MSG_ID="88272.1"
+	background_session=false
+}
+2026-11-11 04:10:29.906 I  tccd[473:216edd] [com.apple.TCC:access] AttributionChain: responsible={TCCDProcess: identifier=com.anthropic.claude-code, pid=86600, auid=501, euid=501, responsible_path=/Users/user/Library/Application Support/Claude/claude-code/2.1.321/ddbdf2b334e1/claude.app/Contents/MacOS/claude, binary_path=/Users/user/Library/Application Support/Claude/claude-code/2.1.321/ddbdf2b334e1/claude.app/Contents/MacOS/claude}, requesting={TCCDProcess: identifier=com.apple.osascript, pid=88272, auid=501, euid=501, binary_path=/usr/bin/osascript},
+2026-11-11 04:10:29.906 I  tccd[473:216edd] [com.apple.TCC:access] AttributionChain: responsible={TCCDProcess: identifier=com.anthropic.claude-code, pid=86600, auid=501, euid=501, responsible_path=/Users/user/Library/Application Support/Claude/claude-code/2.1.321/ddbdf2b334e1/claude.app/Contents/MacOS/claude, binary_path=/Users/user/Library/Application Support/Claude/claude-code/2.1.321/ddbdf2b334e1/claude.app/Contents/MacOS/claude}, requesting={TCCDProcess: identifier=com.apple.osascript, pid=88272, auid=501, euid=501, binary_path=/usr/bin/osascript},
+2026-11-11 04:10:29.906 Df tccd[473:216edd] [com.apple.TCC:access] AUTHREQ_CTX: msgID=88272.1, function=<private>, service=kTCCServiceListenEvent, preflight=yes, query=1, client_dict=(null), daemon_dict=<private>
+2026-11-11 04:10:29.906 Df tccd[473:216edd] [com.apple.TCC:access] AUTHREQ_ATTRIBUTION: msgID=88272.1, attribution={responsible={TCCDProcess: identifier=com.anthropic.claude-code, pid=86600, auid=501, euid=501, responsible_path=/Users/user/Library/Application Support/Claude/claude-code/2.1.321/ddbdf2b334e1/claude.app/Contents/MacOS/claude, binary_path=/Users/user/Library/Application Support/Claude/claude-code/2.1.321/ddbdf2b334e1/claude.app/Contents/MacOS/claude}, requesting={TCCDProcess: identifier=com.apple.osascript, pid=88272, auid=501, euid=501, binary_path=/usr/bin/osascript}, },
+2026-11-11 04:10:29.906 Df tccd[473:216edd] [com.apple.TCC:access] <private> does not support RBS assertion override
+2026-11-11 04:10:29.907 Db tccd[473:216edd] [com.apple.TCC:access] IDENTITY_ATTRIBUTION: starting for: /Users/user/Library/Application Support/Claude/claude-code/2.1.321/ddbdf2b334e1/claude.app/Contents/MacOS/claude
+2026-11-11 04:10:29.907 Db tccd[473:216edd] [com.apple.TCC:access] BUNDLE_ATTRIBUTION:  derivedResponsibleProcess: isDistinct: Yes
+   path: <private>
+bundle: main executable: <private>
+ bundle path: <private>
+    url: <private>
+2026-11-11 04:10:29.907 I  tccd[473:216edd] [com.apple.TCC:access] BUNDLE_ATTRIBUTION: /Users/user/Library/Application Support/Claude/claude-code/2.1.321/ddbdf2b334e1/claude.app/Contents/MacOS/claude is main executable for candidateBundle(/Users/user/Library/Application Support/Claude/claude-code/2.1.321/ddbdf2b334e1/claude.app).
+2026-11-11 04:10:29.907 I  tccd[473:216edd] [com.apple.TCC:access] BUNDLE_ATTRIBUTION: executable path file:///Users/user/Library/Application%20Support/Claude/claude-code/2.1.321/ddbdf2b334e1/claude.app/Contents/MacOS/claude resolves to attributed bundle: file:///Users/user/Library/Application%20Support/Claude/claude-code/2.1.321/ddbdf2b334e1/claude.app/
+2026-11-11 04:10:29.907 Db tccd[473:216edd] [com.apple.TCC:access] IDENTITY_ATTRIBUTION: identifier = com.anthropic.claude-code, type 0
+2026-11-11 04:10:29.907 Db tccd[473:216edd] [com.apple.TCC:access] identityCache: evicting: com.apple.FaceTime.FaceTimeNotificationExtension
+2026-11-11 04:10:29.907 Db tccd[473:216edd] [com.apple.TCC:access] identityCache: adding: com.anthropic.claude-code for accessor: ([88272.558962], 100361), responsible: ([86600.556559], 100361), idx: 77
+2026-11-11 04:10:29.907 Df tccd[473:216edd] [com.apple.TCC:access] AUTHREQ_SUBJECT: msgID=88272.1, subject=com.anthropic.claude-code,
+2026-11-11 04:10:29.907 Db tccd[473:216edd] [com.apple.TCC:access] Evaluated composed authorization from kTCCServiceListenEvent to parent service kTCCServicePostEvent: Auth:Unknown (None)
+2026-11-11 04:10:29.907 Db tccd[473:216edd] [com.apple.TCC:access] Evaluated composed authorization from kTCCServicePostEvent to parent service kTCCServiceAccessibility: Auth:Unknown (None)
+2026-11-11 04:10:29.907 Db tccd[473:216edb] [com.apple.TCC:access] Registered LSApplicationRecord for file:///Users/user/Library/Application%20Support/Claude/claude-code/2.1.321/ddbdf2b334e1/claude.app/
+2026-11-11 04:10:29.907 Df tccd[473:216edd] [com.apple.TCC:access] -[TCCDAccessIdentity staticCode]: static code for: identifier com.anthropic.claude-code, type: 0: 0x7526d5c300 at /Users/user/Library/Application Support/Claude/claude-code/2.1.321/ddbdf2b334e1/claude.app
+2026-11-11 04:10:29.911 E  tccd[473:216edb] [com.apple.TCC:access] State dump of 4036 bytes
+2026-11-11 04:10:29.913 I  tccd[473:216edd] [com.apple.TCC:access] -[TCCDAccessIdentity matchesCodeRequirement:]: SecStaticCodeCheckValidity() static code (0x7526d5c300) from com.anthropic.claude-code : anchor apple; status: -67050
+2026-11-11 04:10:29.913 I  tccd[473:216edd] [com.apple.TCC:access] For com.anthropic.claude-code: matches platform requirements: No
+2026-11-11 04:10:29.913 I  tccd[473:216edd] [com.apple.TCC:access] <TCCDProcess: identifier=com.apple.osascript, pid=88272> has the com.apple.private.tcc.allow-prompting entitlement for service kTCCServiceAll (composed to parent: (null))
+2026-11-11 04:10:29.913 Df tccd[473:216edd] [com.apple.TCC:access] accessing process has com.apple.private.tcc.allow-prompting entitlement
+2026-11-11 04:10:29.913 I  tccd[473:216edd] [com.apple.TCC:access] -[TCCDPlatformMacOS promptingPolicyForIdentity:accessingService:withAttributionChain:]: promptPolicy = 2; isApplePlatformBinary = 0
+2026-11-11 04:10:29.913 I  osascript[88272:217323] [com.apple.TCC:access] RECV: synchronous reply <dictionary: 0x765dc00200> { count = 6, transaction: 0, voucher = 0x0, contents =
+	"prompt_type" => <uint64: 0xa439d3b4cf855f5f>: 1
+	"do_not_cache" => <bool: 0x1f9bcda60>: true
+	"auth_value" => <uint64: 0xa439d3b4cf855f5f>: 1
+	"preflight_unknown" => <bool: 0x1f9bcda60>: true
+	"auth_version" => <uint64: 0xa439d3b4cf855f5f>: 1
+	"auth_reason" => <uint64: 0xa439d3b4cf855f7f>: 5
+}
+2026-11-11 04:10:29.913 I  tccd[473:216edd] [com.apple.TCC:access] Handling access request to kTCCServiceListenEvent, from Sub:{com.anthropic.claude-code}Resp:{TCCDProcess: identifier=com.anthropic.claude-code, pid=86600, auid=501, euid=501, responsible_path=/Users/user/Library/Application Support/Claude/claude-code/2.1.321/ddbdf2b334e1/claude.app/Contents/MacOS/claude, binary_path=/Users/user/Library/Application Support/Claude/claude-code/2.1.321/ddbdf2b334e1/claude.app/Contents/MacOS/claude}, ReqResult(Auth Right: Unknown (None), promptType: 1,DB Action:None, UpdateVerifierData)
+2026-11-11 04:10:29.913 Df tccd[473:216edd] [com.apple.TCC:access] AUTHREQ_RESULT: msgID=88272.1, authValue=1, authReason=5, authVersion=1, desired_auth=0, error=(null),
+2026-11-11 04:10:29.913 I  tccd[473:216edd] [com.apple.TCC:access] REPLY_MSG: msg={
+	prompt_type=1 (0x1)
+	do_not_cache=true
+	auth_value=1 (0x1)
+	preflight_unknown=true
+	auth_version=1 (0x1)
+	auth_reason=5 (0x5)
+}
+2026-11-11 04:10:29.913 Df tccd[473:216edd] [com.apple.TCC:access] REPLY: (0) function=TCCAccessRequest, msgID=88272.1
+2026-11-11 04:10:29.915 Df tccd[473:216edd] [com.apple.TCC:access] REQUEST: tccd_uid=0, sender_pid=471, sender_uid=88, sender_auid=-1, function=TCCAccessRequest, msgID=471.2097
+2026-11-11 04:10:29.915 I  WindowServer[471:216df5] [com.apple.TCC:access] SEND: 0/7 synchronous to com.apple.tccd.system: request: msgID=471.2097, function=TCCAccessRequest, service=kTCCServiceListenEvent, target_token={pid:88272, auid:501, euid:501},
+2026-11-11 04:10:29.915 I  tccd[473:216edd] [com.apple.TCC:access] REQUEST_MSG: msgID=471.2097, msg={
+	require_purpose=<xpc_null>
+	service="kTCCServiceListenEvent"
+	function="TCCAccessRequest"
+	preflight=true
+	target_token={pid:88272, auid:501, euid:501}
+	TCCD_MSG_ID="471.2097"
+	background_session=false
+}
+2026-11-11 04:10:29.915 I  tccd[473:216edd] [com.apple.TCC:access] AttributionChain: responsible={TCCDProcess: identifier=com.anthropic.claude-code, pid=86600, auid=501, euid=501, responsible_path=/Users/user/Library/Application Support/Claude/claude-code/2.1.321/ddbdf2b334e1/claude.app/Contents/MacOS/claude, binary_path=/Users/user/Library/Application Support/Claude/claude-code/2.1.321/ddbdf2b334e1/claude.app/Contents/MacOS/claude}, accessing={TCCDProcess: identifier=com.apple.osascript, pid=88272, auid=501, euid=501, binary_path=/usr/bin/osascript}, requesting={TCCDProcess: identifier=com.apple.WindowServer, pid=471, auid=88, euid=88, binary_path=/System/Library/PrivateFrameworks/SkyLight.framework/Versions/A/Resources/WindowServer},
+2026-11-11 04:10:29.915 I  tccd[473:216edd] [com.apple.TCC:access] <TCCDProcess: identifier=com.apple.WindowServer, pid=471> has the com.apple.private.tcc.manager.check-by-audit-token entitlement for service kTCCServiceListenEvent (composed to parent: (null))
+2026-11-11 04:10:29.916 I  tccd[473:216edd] [com.apple.TCC:access] AttributionChain: responsible={TCCDProcess: identifier=com.anthropic.claude-code, pid=86600, auid=501, euid=501, responsible_path=/Users/user/Library/Application Support/Claude/claude-code/2.1.321/ddbdf2b334e1/claude.app/Contents/MacOS/claude, binary_path=/Users/user/Library/Application Support/Claude/claude-code/2.1.321/ddbdf2b334e1/claude.app/Contents/MacOS/claude}, accessing={TCCDProcess: identifier=com.apple.osascript, pid=88272, auid=501, euid=501, binary_path=/usr/bin/osascript}, requesting={TCCDProcess: identifier=com.apple.WindowServer, pid=471, auid=88, euid=88, binary_path=/System/Library/PrivateFrameworks/SkyLight.framework/Versions/A/Resources/WindowServer},
+2026-11-11 04:10:29.916 Df tccd[473:216edd] [com.apple.TCC:access] AUTHREQ_CTX: msgID=471.2097, function=<private>, service=kTCCServiceListenEvent, preflight=yes, query=1, client_dict=(null), daemon_dict=<private>
+2026-11-11 04:10:29.916 Df tccd[473:216edd] [com.apple.TCC:access] AUTHREQ_ATTRIBUTION: msgID=471.2097, attribution={responsible={TCCDProcess: identifier=com.anthropic.claude-code, pid=86600, auid=501, euid=501, responsible_path=/Users/user/Library/Application Support/Claude/claude-code/2.1.321/ddbdf2b334e1/claude.app/Contents/MacOS/claude, binary_path=/Users/user/Library/Application Support/Claude/claude-code/2.1.321/ddbdf2b334e1/claude.app/Contents/MacOS/claude}, accessing={TCCDProcess: identifier=com.apple.osascript, pid=88272, auid=501, euid=501, binary_path=/usr/bin/osascript}, requesting={TCCDProcess: identifier=com.apple.WindowServer, pid=471, auid=88, euid=88, binary_path=/System/Library/PrivateFrameworks/SkyLight.framework/Versions/A/Resources/WindowServer}, },
+2026-11-11 04:10:29.916 I  tccd[473:216edd] [com.apple.TCC:access] <TCCDProcess: identifier=com.apple.WindowServer, pid=471> has the com.apple.private.tcc.manager.check-by-audit-token entitlement for service kTCCServiceListenEvent (composed to parent: (null))
+2026-11-11 04:10:29.916 Df tccd[473:216edd] [com.apple.TCC:access] requestor: TCCDProcess: identifier=com.apple.WindowServer, pid=471, auid=88, euid=88, binary_path=/System/Library/PrivateFrameworks/SkyLight.framework/Versions/A/Resources/WindowServer is checking access for accessor TCCDProcess: identifier=com.apple.osascript, pid=88272, auid=501, euid=501, binary_path=/usr/bin/osascript
+2026-11-11 04:10:29.916 Df tccd[473:216edd] [com.apple.TCC:access] <private> does not support RBS assertion override
+2026-11-11 04:10:29.916 Db tccd[473:216edd] [com.apple.TCC:access] IDENTITY_ATTRIBUTION: starting for: /Users/user/Library/Application Support/Claude/claude-code/2.1.321/ddbdf2b334e1/claude.app/Contents/MacOS/claude
+2026-11-11 04:10:29.916 I  tccd[473:216edd] [com.apple.TCC:access] IDENTITY_ATTRIBUTION: /Users/user/Library/Application Support/Claude/claude-code/2.1.321/ddbdf2b334e1/claude.app/Contents/MacOS/claude[471]: from cache: = com.anthropic.claude-code, type 0 (1496/2846)
+2026-11-11 04:10:29.916 Df tccd[473:216edd] [com.apple.TCC:access] AUTHREQ_SUBJECT: msgID=471.2097, subject=com.anthropic.claude-code,
+2026-11-11 04:10:29.916 Db tccd[473:216edd] [com.apple.TCC:access] Evaluated composed authorization from kTCCServiceListenEvent to parent service kTCCServicePostEvent: Auth:Unknown (None)
+2026-11-11 04:10:29.916 Db tccd[473:216edd] [com.apple.TCC:access] Evaluated composed authorization from kTCCServicePostEvent to parent service kTCCServiceAccessibility: Auth:Unknown (None)
+2026-11-11 04:10:29.916 Db tccd[473:216edb] [com.apple.TCC:access] register with resolver: binary:file:///usr/bin/osascript, bundle file:///usr/bin/ -- failed: isApp:0
+2026-11-11 04:10:29.916 Db tccd[473:216edb] [com.apple.TCC:access] Registered LSApplicationRecord for file:///Users/user/Library/Application%20Support/Claude/claude-code/2.1.321/ddbdf2b334e1/claude.app/
+2026-11-11 04:10:29.916 Df tccd[473:216edd] [com.apple.TCC:access] -[TCCDAccessIdentity staticCode]: static code for: identifier com.anthropic.claude-code, type: 0: 0x7526d5c300 at /Users/user/Library/Application Support/Claude/claude-code/2.1.321/ddbdf2b334e1/claude.app
+2026-11-11 04:10:29.921 I  tccd[473:216edd] [com.apple.TCC:access] -[TCCDAccessIdentity matchesCodeRequirement:]: SecStaticCodeCheckValidity() static code (0x7526d5c300) from com.anthropic.claude-code : anchor apple; status: -67050
+2026-11-11 04:10:29.921 I  tccd[473:216edd] [com.apple.TCC:access] For com.anthropic.claude-code: matches platform requirements: No
+2026-11-11 04:10:29.921 I  tccd[473:216edd] [com.apple.TCC:access] <TCCDProcess: identifier=com.apple.osascript, pid=88272> has the com.apple.private.tcc.allow-prompting entitlement for service kTCCServiceAll (composed to parent: (null))
+2026-11-11 04:10:29.921 Df tccd[473:216edd] [com.apple.TCC:access] accessing process has com.apple.private.tcc.allow-prompting entitlement
+2026-11-11 04:10:29.921 I  tccd[473:216edd] [com.apple.TCC:access] -[TCCDPlatformMacOS promptingPolicyForIdentity:accessingService:withAttributionChain:]: promptPolicy = 2; isApplePlatformBinary = 0
+2026-11-11 04:10:29.922 I  WindowServer[471:216df5] [com.apple.TCC:access] RECV: synchronous reply <dictionary: 0x7951b78a00> { count = 5, transaction: 0, voucher = 0x0, contents =
+	"prompt_type" => <uint64: 0x8ba3e61c581a7f1f>: 1
+	"auth_value" => <uint64: 0x8ba3e61c581a7f1f>: 1
+	"preflight_unknown" => <bool: 0x1f9bcda60>: true
+	"auth_version" => <uint64: 0x8ba3e61c581a7f1f>: 1
+	"auth_reason" => <uint64: 0x8ba3e61c581a7f3f>: 5
+}
+2026-11-11 04:10:29.921 I  tccd[473:216edd] [com.apple.TCC:access] Handling access request to kTCCServiceListenEvent, from Sub:{com.anthropic.claude-code}Resp:{TCCDProcess: identifier=com.anthropic.claude-code, pid=86600, auid=501, euid=501, responsible_path=/Users/user/Library/Application Support/Claude/claude-code/2.1.321/ddbdf2b334e1/claude.app/Contents/MacOS/claude, binary_path=/Users/user/Library/Application Support/Claude/claude-code/2.1.321/ddbdf2b334e1/claude.app/Contents/MacOS/claude}, ReqResult(Auth Right: Unknown (None), promptType: 1,DB Action:None, UpdateVerifierData)
+2026-11-11 04:10:29.922 Df tccd[473:216edd] [com.apple.TCC:access] AUTHREQ_RESULT: msgID=471.2097, authValue=1, authReason=5, authVersion=1, desired_auth=0, error=(null),
+2026-11-11 04:10:29.922 I  tccd[473:216edd] [com.apple.TCC:access] REPLY_MSG: msg={
+	prompt_type=1 (0x1)
+	auth_value=1 (0x1)
+	preflight_unknown=true
+	auth_version=1 (0x1)
+	auth_reason=5 (0x5)
+}
+2026-11-11 04:10:29.922 Df tccd[473:216edd] [com.apple.TCC:access] REPLY: (0) function=TCCAccessRequest, msgID=471.2097
+2026-11-11 04:10:29.922 I  WindowServer[471:121f] [com.apple.TCC:access] SEND: 0/7 synchronous to com.apple.tccd.system: request: msgID=471.2098, function=TCCAccessRequest, service=kTCCServiceListenEvent, target_token={pid:88272, auid:501, euid:501},
+2026-11-11 04:10:29.922 Df tccd[473:216edb] [com.apple.TCC:access] REQUEST: tccd_uid=0, sender_pid=471, sender_uid=88, sender_auid=-1, function=TCCAccessRequest, msgID=471.2098
+2026-11-11 04:10:29.922 I  tccd[473:216edb] [com.apple.TCC:access] REQUEST_MSG: msgID=471.2098, msg={
+	require_purpose=<xpc_null>
+	service="kTCCServiceListenEvent"
+	function="TCCAccessRequest"
+	preflight=true
+	target_token={pid:88272, auid:501, euid:501}
+	TCCD_MSG_ID="471.2098"
+	background_session=false
+}
+2026-11-11 04:10:29.922 I  tccd[473:216edb] [com.apple.TCC:access] AttributionChain: responsible={TCCDProcess: identifier=com.anthropic.claude-code, pid=86600, auid=501, euid=501, responsible_path=/Users/user/Library/Application Support/Claude/claude-code/2.1.321/ddbdf2b334e1/claude.app/Contents/MacOS/claude, binary_path=/Users/user/Library/Application Support/Claude/claude-code/2.1.321/ddbdf2b334e1/claude.app/Contents/MacOS/claude}, accessing={TCCDProcess: identifier=com.apple.osascript, pid=88272, auid=501, euid=501, binary_path=/usr/bin/osascript}, requesting={TCCDProcess: identifier=com.apple.WindowServer, pid=471, auid=88, euid=88, binary_path=/System/Library/PrivateFrameworks/SkyLight.framework/Versions/A/Resources/WindowServer},
+2026-11-11 04:10:29.922 I  tccd[473:216edb] [com.apple.TCC:access] <TCCDProcess: identifier=com.apple.WindowServer, pid=471> has the com.apple.private.tcc.manager.check-by-audit-token entitlement for service kTCCServiceListenEvent (composed to parent: (null))
+2026-11-11 04:10:29.922 I  tccd[473:216edb] [com.apple.TCC:access] AttributionChain: responsible={TCCDProcess: identifier=com.anthropic.claude-code, pid=86600, auid=501, euid=501, responsible_path=/Users/user/Library/Application Support/Claude/claude-code/2.1.321/ddbdf2b334e1/claude.app/Contents/MacOS/claude, binary_path=/Users/user/Library/Application Support/Claude/claude-code/2.1.321/ddbdf2b334e1/claude.app/Contents/MacOS/claude}, accessing={TCCDProcess: identifier=com.apple.osascript, pid=88272, auid=501, euid=501, binary_path=/usr/bin/osascript}, requesting={TCCDProcess: identifier=com.apple.WindowServer, pid=471, auid=88, euid=88, binary_path=/System/Library/PrivateFrameworks/SkyLight.framework/Versions/A/Resources/WindowServer},
+2026-11-11 04:10:29.922 Df tccd[473:216edb] [com.apple.TCC:access] AUTHREQ_CTX: msgID=471.2098, function=<private>, service=kTCCServiceListenEvent, preflight=yes, query=1, client_dict=(null), daemon_dict=<private>
+2026-11-11 04:10:29.922 Df tccd[473:216edb] [com.apple.TCC:access] AUTHREQ_ATTRIBUTION: msgID=471.2098, attribution={responsible={TCCDProcess: identifier=com.anthropic.claude-code, pid=86600, auid=501, euid=501, responsible_path=/Users/user/Library/Application Support/Claude/claude-code/2.1.321/ddbdf2b334e1/claude.app/Contents/MacOS/claude, binary_path=/Users/user/Library/Application Support/Claude/claude-code/2.1.321/ddbdf2b334e1/claude.app/Contents/MacOS/claude}, accessing={TCCDProcess: identifier=com.apple.osascript, pid=88272, auid=501, euid=501, binary_path=/usr/bin/osascript}, requesting={TCCDProcess: identifier=com.apple.WindowServer, pid=471, auid=88, euid=88, binary_path=/System/Library/PrivateFrameworks/SkyLight.framework/Versions/A/Resources/WindowServer}, },
+2026-11-11 04:10:29.922 I  tccd[473:216edb] [com.apple.TCC:access] <TCCDProcess: identifier=com.apple.WindowServer, pid=471> has the com.apple.private.tcc.manager.check-by-audit-token entitlement for service kTCCServiceListenEvent (composed to parent: (null))
+2026-11-11 04:10:29.922 Df tccd[473:216edb] [com.apple.TCC:access] requestor: TCCDProcess: identifier=com.apple.WindowServer, pid=471, auid=88, euid=88, binary_path=/System/Library/PrivateFrameworks/SkyLight.framework/Versions/A/Resources/WindowServer is checking access for accessor TCCDProcess: identifier=com.apple.osascript, pid=88272, auid=501, euid=501, binary_path=/usr/bin/osascript
+2026-11-11 04:10:29.922 Df tccd[473:216edb] [com.apple.TCC:access] <private> does not support RBS assertion override
+2026-11-11 04:10:29.922 Db tccd[473:216edb] [com.apple.TCC:access] IDENTITY_ATTRIBUTION: starting for: /Users/user/Library/Application Support/Claude/claude-code/2.1.321/ddbdf2b334e1/claude.app/Contents/MacOS/claude
+2026-11-11 04:10:29.922 I  tccd[473:216edb] [com.apple.TCC:access] IDENTITY_ATTRIBUTION: /Users/user/Library/Application Support/Claude/claude-code/2.1.321/ddbdf2b334e1/claude.app/Contents/MacOS/claude[471]: from cache: = com.anthropic.claude-code, type 0 (1497/2847)
+2026-11-11 04:10:29.922 Df tccd[473:216edb] [com.apple.TCC:access] AUTHREQ_SUBJECT: msgID=471.2098, subject=com.anthropic.claude-code,
+2026-11-11 04:10:29.922 Db tccd[473:216edb] [com.apple.TCC:access] Evaluated composed authorization from kTCCServiceListenEvent to parent service kTCCServicePostEvent: Auth:Unknown (None)
+2026-11-11 04:10:29.922 Db tccd[473:216edb] [com.apple.TCC:access] Evaluated composed authorization from kTCCServicePostEvent to parent service kTCCServiceAccessibility: Auth:Unknown (None)
+2026-11-11 04:10:29.923 Db tccd[473:216edd] [com.apple.TCC:access] register with resolver: binary:file:///usr/bin/osascript, bundle file:///usr/bin/ -- failed: isApp:0
+2026-11-11 04:10:29.923 Db tccd[473:216edd] [com.apple.TCC:access] Registered LSApplicationRecord for file:///Users/user/Library/Application%20Support/Claude/claude-code/2.1.321/ddbdf2b334e1/claude.app/
+2026-11-11 04:10:29.923 Df tccd[473:216edb] [com.apple.TCC:access] -[TCCDAccessIdentity staticCode]: static code for: identifier com.anthropic.claude-code, type: 0: 0x7526d5c300 at /Users/user/Library/Application Support/Claude/claude-code/2.1.321/ddbdf2b334e1/claude.app
+2026-11-11 04:10:29.928 I  tccd[473:216edb] [com.apple.TCC:access] -[TCCDAccessIdentity matchesCodeRequirement:]: SecStaticCodeCheckValidity() static code (0x7526d5c300) from com.anthropic.claude-code : anchor apple; status: -67050
+2026-11-11 04:10:29.928 I  tccd[473:216edb] [com.apple.TCC:access] For com.anthropic.claude-code: matches platform requirements: No
+2026-11-11 04:10:29.928 I  tccd[473:216edb] [com.apple.TCC:access] <TCCDProcess: identifier=com.apple.osascript, pid=88272> has the com.apple.private.tcc.allow-prompting entitlement for service kTCCServiceAll (composed to parent: (null))
+2026-11-11 04:10:29.928 Df tccd[473:216edb] [com.apple.TCC:access] accessing process has com.apple.private.tcc.allow-prompting entitlement
+2026-11-11 04:10:29.928 I  tccd[473:216edb] [com.apple.TCC:access] -[TCCDPlatformMacOS promptingPolicyForIdentity:accessingService:withAttributionChain:]: promptPolicy = 2; isApplePlatformBinary = 0
+2026-11-11 04:10:29.928 I  tccd[473:216edb] [com.apple.TCC:access] Handling access request to kTCCServiceListenEvent, from Sub:{com.anthropic.claude-code}Resp:{TCCDProcess: identifier=com.anthropic.claude-code, pid=86600, auid=501, euid=501, responsible_path=/Users/user/Library/Application Support/Claude/claude-code/2.1.321/ddbdf2b334e1/claude.app/Contents/MacOS/claude, binary_path=/Users/user/Library/Application Support/Claude/claude-code/2.1.321/ddbdf2b334e1/claude.app/Contents/MacOS/claude}, ReqResult(Auth Right: Unknown (None), promptType: 1,DB Action:None, UpdateVerifierData)
+2026-11-11 04:10:29.928 Df tccd[473:216edb] [com.apple.TCC:access] AUTHREQ_RESULT: msgID=471.2098, authValue=1, authReason=5, authVersion=1, desired_auth=0, error=(null),
+2026-11-11 04:10:29.928 I  tccd[473:216edb] [com.apple.TCC:access] REPLY_MSG: msg={
+	prompt_type=1 (0x1)
+	auth_value=1 (0x1)
+	preflight_unknown=true
+	auth_version=1 (0x1)
+	auth_reason=5 (0x5)
+}
+2026-11-11 04:10:29.928 I  WindowServer[471:121f] [com.apple.TCC:access] RECV: synchronous reply <dictionary: 0x7951b78a00> { count = 5, transaction: 0, voucher = 0x0, contents =
+	"prompt_type" => <uint64: 0x8ba3e61c581a7f1f>: 1
+	"auth_value" => <uint64: 0x8ba3e61c581a7f1f>: 1
+	"preflight_unknown" => <bool: 0x1f9bcda60>: true
+	"auth_version" => <uint64: 0x8ba3e61c581a7f1f>: 1
+	"auth_reason" => <uint64: 0x8ba3e61c581a7f3f>: 5
+}
+2026-11-11 04:10:29.928 Df tccd[473:216edb] [com.apple.TCC:access] REPLY: (0) function=TCCAccessRequest, msgID=471.2098
+2026-11-11 04:10:29.932 I  appleeventsd[705:216daa] [com.apple.TCC:access] SEND: 0/4 synchronous to com.apple.tccd.system: request: msgID=705.381, function=TCCCreateDesignatedRequirementIdentityFromAuditTokenForService, service=kTCCServiceAppleEvents, target_token={pid:88272, auid:501, euid:501},
+2026-11-11 04:10:29.933 Df tccd[473:216edd] [com.apple.TCC:access] REQUEST: tccd_uid=0, sender_pid=705, sender_uid=55, sender_auid=-1, function=TCCCreateDesignatedRequirementIdentityFromAuditTokenForService, msgID=705.381
+2026-11-11 04:10:29.933 I  tccd[473:216edd] [com.apple.TCC:access] REQUEST_MSG: msgID=705.381, msg={
+	service="kTCCServiceAppleEvents"
+	function="TCCCreateDesignatedRequirementIdentityFromAuditTokenForService"
+	target_token={pid:88272, auid:501, euid:501}
+	TCCD_MSG_ID="705.381"
+	input_identifier=<xpc_null>
+}
+2026-11-11 04:10:29.933 I  tccd[473:216edd] [com.apple.TCC:access] AttributionChain: responsible={TCCDProcess: identifier=com.anthropic.claude-code, pid=86600, auid=501, euid=501, responsible_path=/Users/user/Library/Application Support/Claude/claude-code/2.1.321/ddbdf2b334e1/claude.app/Contents/MacOS/claude, binary_path=/Users/user/Library/Application Support/Claude/claude-code/2.1.321/ddbdf2b334e1/claude.app/Contents/MacOS/claude}, accessing={TCCDProcess: identifier=com.apple.osascript, pid=88272, auid=501, euid=501, binary_path=/usr/bin/osascript}, requesting={TCCDProcess: identifier=com.apple.appleeventsd, pid=705, auid=55, euid=55, binary_path=/System/Library/CoreServices/appleeventsd},
+2026-11-11 04:10:29.933 I  tccd[473:216edd] [com.apple.TCC:access] do_TCCCreateDesignatedRequirementIdentityFromAuditTokenForService: processing incoming request
+2026-11-11 04:10:29.933 I  tccd[473:216edd] [com.apple.TCC:access] AttributionChain: responsible={TCCDProcess: identifier=com.anthropic.claude-code, pid=86600, auid=501, euid=501, responsible_path=/Users/user/Library/Application Support/Claude/claude-code/2.1.321/ddbdf2b334e1/claude.app/Contents/MacOS/claude, binary_path=/Users/user/Library/Application Support/Claude/claude-code/2.1.321/ddbdf2b334e1/claude.app/Contents/MacOS/claude}, accessing={TCCDProcess: identifier=com.apple.osascript, pid=88272, auid=501, euid=501, binary_path=/usr/bin/osascript}, requesting={TCCDProcess: identifier=com.apple.appleeventsd, pid=705, auid=55, euid=55, binary_path=/System/Library/CoreServices/appleeventsd},
+2026-11-11 04:10:29.935 Db tccd[473:216edd] [com.apple.TCC:access] IDENTITY_ATTRIBUTION: starting for: /Users/user/Library/Application Support/Claude/claude-code/2.1.321/ddbdf2b334e1/claude.app/Contents/MacOS/claude
+2026-11-11 04:10:29.944 Db tccd[473:216edd] [com.apple.TCC:access] Identified provisional outer-most app bundle for <private> as <private>
+2026-11-11 04:10:29.944 Db tccd[473:216edd] [com.apple.TCC:access] BUNDLE_ATTRIBUTION:  derivedResponsibleProcess: isDistinct: Yes
+   path: <private>
+bundle: main executable: <private>
+ bundle path: <private>
+    url: <private>
+2026-11-11 04:10:29.944 I  tccd[473:216edd] [com.apple.TCC:access] BUNDLE_ATTRIBUTION: /Users/user/Library/Application Support/Claude/claude-code/2.1.321/ddbdf2b334e1/claude.app/Contents/MacOS/claude is main executable for candidateBundle(/Users/user/Library/Application Support/Claude/claude-code/2.1.321/ddbdf2b334e1/claude.app).
+2026-11-11 04:10:29.944 I  tccd[473:216edd] [com.apple.TCC:access] BUNDLE_ATTRIBUTION: executable path file:///Users/user/Library/Application%20Support/Claude/claude-code/2.1.321/ddbdf2b334e1/claude.app/Contents/MacOS/claude resolves to attributed bundle: file:///Users/user/Library/Application%20Support/Claude/claude-code/2.1.321/ddbdf2b334e1/claude.app/
+2026-11-11 04:10:29.944 Db tccd[473:216edd] [com.apple.TCC:access] IDENTITY_ATTRIBUTION: identifier = com.anthropic.claude-code, type 0
+2026-11-11 04:10:29.944 Db tccd[473:216edd] [com.apple.TCC:access] identityCache: evicting: us.zoom.updater
+2026-11-11 04:10:29.944 Db tccd[473:216edd] [com.apple.TCC:access] identityCache: adding: com.anthropic.claude-code for accessor: ([88272.558962], 100361), responsible: ([86600.556559], 100361), idx: 77
+2026-11-11 04:10:29.945 Df tccd[473:216edd] [com.apple.TCC:access] -[TCCDAccessIdentity staticCode]: static code for: identifier com.anthropic.claude-code, type: 0: 0x7526d5c300 at /Users/user/Library/Application Support/Claude/claude-code/2.1.321/ddbdf2b334e1/claude.app
+2026-11-11 04:10:29.960 Db tccd[473:216edd] [com.apple.TCC:access] -[TCCDAccessIdentity designatedRequirementData]: DR for identifier com.anthropic.claude-code with static code 0x7526d5c300: identifier "com.anthropic.claude-code" and anchor apple generic and certificate 1[field.1.2.840.113635.100.6.2.6] /* exists */ and certificate leaf[field.1.2.840.113635.100.6.1.13] /* exists */ and certificate leaf[subject.OU] = Q6L2SF6YDW
+2026-11-11 04:10:29.960 I  tccd[473:216edd] [com.apple.TCC:access] /Users/user/Library/Application Support/Claude/claude-code/2.1.321/ddbdf2b334e1/claude.app/Contents/MacOS/claude (offset 0) linked against SDK version 0x1a0500, platform: 1
+2026-11-11 04:10:29.960 I  tccd[473:216edd] [com.apple.TCC:access] -[TCCDAccessIdentity matchesCodeRequirement:]: SecStaticCodeCheckValidity() static code (0x7526d5c300) from com.anthropic.claude-code : anchor apple; status: -67050
+2026-11-11 04:10:29.960 I  tccd[473:216edd] [com.apple.TCC:access] For com.anthropic.claude-code: matches platform requirements: No
+2026-11-11 04:10:29.960 I  tccd[473:216edd] [com.apple.TCC:access] <TCCDProcess: identifier=com.apple.osascript, pid=88272> has the com.apple.private.tcc.allow-prompting entitlement for service kTCCServiceAll (composed to parent: (null))
+2026-11-11 04:10:29.960 Df tccd[473:216edd] [com.apple.TCC:access] accessing process has com.apple.private.tcc.allow-prompting entitlement
+2026-11-11 04:10:29.960 I  tccd[473:216edd] [com.apple.TCC:access] -[TCCDPlatformMacOS promptingPolicyForIdentity:accessingService:withAttributionChain:]: promptPolicy = 2; isApplePlatformBinary = 0
+2026-11-11 04:10:29.960 I  tccd[473:216edd] [com.apple.TCC:access] Derived team id of <private> for TCCDProcess: identifier=com.anthropic.claude-code, pid=86600, auid=501, euid=501, responsible_path=/Users/user/Library/Application Support/Claude/claude-code/2.1.321/ddbdf2b334e1/claude.app/Contents/MacOS/claude, binary_path=/Users/user/Library/Application Support/Claude/claude-code/2.1.321/ddbdf2b334e1/claude.app/Contents/MacOS/claude
+2026-11-11 04:10:29.961 Db tccd[473:216edd] [com.apple.TCC:access] DR Identity for responsible={TCCDProcess: identifier=com.anthropic.claude-code, pid=86600, auid=501, euid=501, responsible_path=/Users/user/Library/Application Support/Claude/claude-code/2.1.321/ddbdf2b334e1/claude.app/Contents/MacOS/claude, binary_path=/Users/user/Library/Application Support/Claude/claude-code/2.1.321/ddbdf2b334e1/claude.app/Contents/MacOS/claude}, accessing={TCCDProcess: identifier=com.apple.osascript, pid=88272, auid=501, euid=501, binary_path=/usr/bin/osascript}, requesting={TCCDProcess: identifier=com.apple.appleeventsd, pid=705, auid=55, euid=55, binary_path=/System/Library/CoreServices/appleeventsd}, : {
+    kTCCCodeIdentityAuditToken = {length = 32, bytes = 0xf5010000 f5010000 14000000 f5010000 ... 09880100 72870800 };
+    kTCCCodeIdentityAuthority = kTCCCodeIdentityDesignatedRequirementAuthority;
+    kTCCCodeIdentityCSFlags = 536937217;
+    kTCCCodeIdentityCanSendToAnyTarget = 0;
+    kTCCCodeIdentityDesignatedRequirementData = {length = 168, bytes = 0xfade0c00 000000a8 00000001 0000000
+2026-11-11 04:10:29.961 I  tccd[473:216edd] [com.apple.TCC:access] do_TCCCreateDesignatedRequirementIdentityFromAuditTokenForService: creating property list from identity dictionary
+2026-11-11 04:10:29.961 I  tccd[473:216edd] [com.apple.TCC:access] do_TCCCreateDesignatedRequirementIdentityFromAuditTokenForService: property list successfully created
+2026-11-11 04:10:29.961 I  tccd[473:216edd] [com.apple.TCC:access] REPLY_MSG: msg={
+	target_token={pid:88272, auid:501, euid:501}
+	response_dict=<data: 0x7526c21600>: { length = 924 bytes, contents = 0x62706c6973743030dc0102030405060708090a0b0c0d0e0f... }
+}
+2026-11-11 04:10:29.961 Df tccd[473:216edd] [com.apple.TCC:access] REPLY: (0) function=TCCCreateDesignatedRequirementIdentityFromAuditTokenForService, msgID=705.381
+2026-11-11 04:10:29.961 I  appleeventsd[705:216daa] [com.apple.TCC:access] RECV: synchronous reply <dictionary: 0x75710a8000> { count = 2, transaction: 0, voucher = 0x0, contents =
+	"target_token" => <data: 0x7570c6c600>: { length = 32 bytes, contents = 0xf5010000f501000014000000f501000014000000d0580100... }
+	"response_dict" => <data: 0x7570c6cb40>: { length = 924 bytes, contents = 0x62706c6973743030dc0102030405060708090a0b0c0d0e0f... }
+}
+2026-11-11 04:10:29.961 Df Finder[14492:214420] [com.apple.TCC:access] TCCAccessRequestIndirect: TCCAccessRequestIndirect with pid 14492: target_identity: {
+    kTCCCodeIdentityAuditToken = {length = 32, bytes = 0xf5010000 f5010000 14000000 f5010000 ... 09880100 72870800 };
+    kTCCCodeIdentityAuthority = kTCCCodeIdentityDesignatedRequirementAuthority;
+    kTCCCodeIdentityCSFlags = 536937217;
+    kTCCCodeIdentityCanSendToAnyTarget = 0;
+    kTCCCodeIdentityDesignatedRequirementData = {length = 168, bytes = 0xfade0c00 000000a8 00000001 00000006 ... 53463659 44570000 };
+    kTCCCodeIdentityExecutableURL = "file:///Users/user/Library/Application%20Support/Claude/claude-code/2.1.321/ddbdf2b334e1/claude.app/Contents/MacOS/claude";
+    kTCCCodeIdentityIdentifier = "com.anthropic.claude-code";
+    kTCCCodeIdentityIdentifierType = 0;
+    kTCCCodeIdentityPlatformType = 1;
+    kTCCCodeIdentityPromptPolicy = 2;
+    kTCCCodeIdentitySDKVersion = 1705216;
+    kTCCCodeIdentityTeamID = Q6L2SF6YDW;
+}
+2026-11-11 04:10:29.961 Db Finder[14492:214420] [com.apple.TCC:access] TCCAccessRequestIndirect: kTCCCodeIdentityIdentifier is <private>
+2026-11-11 04:10:29.961 Db Finder[14492:214420] [com.apple.TCC:access] TCCAccessRequestIndirect: kTCCCodeIdentityDesignatedRequirementData is 168 bytes
+2026-11-11 04:10:29.961 Db Finder[14492:214420] [com.apple.TCC:access] TCCAccessRequestIndirect: kTCCCodeIdentityIdentifierType is 0
+2026-11-11 04:10:29.961 Db Finder[14492:214420] [com.apple.TCC:access] TCCAccessRequestIndirect: kTCCCodeIdentityExecutableURL is <private>
+2026-11-11 04:10:29.961 Db Finder[14492:214420] [com.apple.TCC:access] TCCAccessRequestIndirect: kTCCCodeIdentityTeamID is <private>
+2026-11-11 04:10:29.961 Db Finder[14492:214420] [com.apple.TCC:access] TCCAccessRequestIndirect: kTCCCodeIdentityPromptPolicy is 2
+2026-11-11 04:10:29.961 Db Finder[14492:214420] [com.apple.TCC:access] TCCAccessRequestIndirect: kTCCCodeIdentitySDKVersion is 1705216
+2026-11-11 04:10:29.961 Db Finder[14492:214420] [com.apple.TCC:access] TCCAccessRequestIndirect: kTCCCodeIdentityPlatformType is 1
+2026-11-11 04:10:29.961 Df Finder[14492:2163e5] [com.apple.TCC:access] TCCAccessRequestIndirect_block_invoke: setting up keys
+2026-11-11 04:10:29.961 Df Finder[14492:2163e5] [com.apple.TCC:access] TCCAccessRequestIndirect_block_invoke: vproc_swap_string
+2026-11-11 04:10:29.961 Df Finder[14492:2163e5] [com.apple.TCC:access] TCCAccessRequestIndirect_block_invoke: preparing xpc message
+2026-11-11 04:10:29.961 Df Finder[14492:2163e5] [com.apple.TCC:access] TCCAccessRequestIndirect_block_invoke: requesting access
+2026-11-11 04:10:29.961 I  Finder[14492:2163e5] [com.apple.TCC:access] SEND: 0/4 asynchronous to com.apple.tccd: request: msgID=14492.5, function=TCCAccessRequestIndirect, service=kTCCServiceAppleEvents, target_token={pid:88272, auid:501, euid:501}, indirect_object_token={pid:14492, auid:501, euid:501},
+2026-11-11 04:10:29.962 Df tccd[14004:216dc1] [com.apple.TCC:access] REQUEST: tccd_uid=501, sender_pid=14492, sender_uid=501, sender_auid=501, function=TCCAccessRequestIndirect, msgID=14492.5
+2026-11-11 04:10:29.963 I  tccd[14004:216dc1] [com.apple.TCC:access] REQUEST_MSG: msgID=14492.5, msg={
+	target_prompt=2 (0x2)
+	target_csflags=536937217 (0x20010301)
+	require_purpose=true
+	target_platform_type=1 (0x1)
+	target_team_id="Q6L2SF6YDW"
+	service="kTCCServiceAppleEvents"
+	indirect_object_token={pid:14492, auid:501, euid:501}
+	target_sdk_version=1705216 (0x1a0500)
+	target_identifier_type=0 (0x0)
+	target_identifier="com.anthropic.claude-code"
+	function="TCCAccessRequestIndirect"
+	preflight=false
+	timeout=0 (0x0)
+	target_path="file:///Users/user/Library/Application%20Support/Claude/claude-code/2.1.321/ddbdf2b334e1/claude.app/Contents/MacOS/claude"
+	target_csreq={identifier "com.anthropic.claude-code" and anchor apple generic and certificate 1[field.1.2.840.113635.100.6.2.6] /* exists */ and certificate leaf[field.1.2.840.113635.100.6.1.13] /* exists */ and certificate leaf[subject.OU] = Q6L2SF6YDW}
+	target_token={pid:88272, auid:501, euid:501}
+	TCCD_MSG_ID="14492.5"
+	background_session=false
+}
+2026-11-11 04:10:29.963 I  tccd[14004:216dc1] [com.apple.TCC:access] do_TCCAccessRequestIndirect: processing incoming request
+2026-11-11 04:10:29.963 Db tccd[14004:216dc1] [com.apple.TCC:access] do_TCCAccessRequestIndirect: got valid target_token
+2026-11-11 04:10:29.963 I  tccd[14004:216dc1] [com.apple.TCC:access] do_TCCAccessRequestIndirect: target information processed
+2026-11-11 04:10:29.963 I  tccd[14004:216dc1] [com.apple.TCC:access] do_TCCAccessRequestIndirect: looking up indirect object by audit token
+2026-11-11 04:10:29.963 I  tccd[14004:216dc1] [com.apple.TCC:access] do_TCCAccessRequestIndirect: generating designated requirement for pid_indirect 14492
+2026-11-11 04:10:29.963 I  tccd[14004:216dc1] [com.apple.TCC:access] AttributionChain: accessing={TCCDProcess: identifier=com.apple.finder, pid=14492, auid=501, euid=501, binary_path=/System/Library/CoreServices/Finder.app/Contents/MacOS/Finder}, requesting={TCCDProcess: identifier=com.apple.finder, pid=14492, auid=501, euid=501, binary_path=/System/Library/CoreServices/Finder.app/Contents/MacOS/Finder},
+2026-11-11 04:10:29.964 Db tccd[14004:216dc1] [com.apple.TCC:access] IDENTITY_ATTRIBUTION: starting for: /System/Library/CoreServices/Finder.app/Contents/MacOS/Finder
+2026-11-11 04:10:29.964 I  tccd[14004:216dc1] [com.apple.TCC:access] IDENTITY_ATTRIBUTION: /System/Library/CoreServices/Finder.app/Contents/MacOS/Finder[14492]: from cache: = com.apple.finder, type 0 (764/1299)
+2026-11-11 04:10:29.965 Df tccd[14004:216dc1] [com.apple.TCC:access] -[TCCDAccessIdentity staticCode]: static code for: identifier com.apple.finder, type: 0: 0x78fedc8300 at /System/Library/CoreServices/Finder.app
+2026-11-11 04:10:29.969 Db tccd[14004:216dc1] [com.apple.TCC:access] -[TCCDAccessIdentity designatedRequirementData]: DR for identifier com.apple.finder with static code 0x78fedc8300: identifier "com.apple.finder" and anchor apple
+2026-11-11 04:10:29.969 I  tccd[14004:216dc1] [com.apple.TCC:access] /System/Library/CoreServices/Finder.app/Contents/MacOS/Finder (offset 13221888) linked against SDK version 0x1b0200, platform: 1
+2026-11-11 04:10:29.972 I  tccd[14004:216dc1] [com.apple.TCC:access] -[TCCDAccessIdentity matchesCodeRequirement:]: SecStaticCodeCheckValidity() static code (0x78fedc8300) from com.apple.finder : anchor apple; status: 0
+2026-11-11 04:10:29.972 I  tccd[14004:216dc1] [com.apple.TCC:access] For com.apple.finder: matches platform requirements: Yes
+2026-11-11 04:10:29.972 Df tccd[14004:216dc1] [com.apple.TCC:access] Platform binary prompting is 'Deny' because: is Platform Binary
+2026-11-11 04:10:29.972 I  tccd[14004:216dc1] [com.apple.TCC:access] -[TCCDPlatformMacOS promptingPolicyForIdentity:accessingService:withAttributionChain:]: promptPolicy = 3; isApplePlatformBinary = 1
+2026-11-11 04:10:29.972 I  tccd[14004:216dc1] [com.apple.TCC:access] <TCCDProcess: identifier=com.apple.finder, pid=14492> has the com.apple.private.tcc.allow entitlement for service kTCCServiceAppleEvents (composed to parent: (null))
+2026-11-11 04:10:29.974 I  tccd[14004:216dc1] [com.apple.TCC:access] Derived team id of (null) for TCCDProcess: identifier=com.apple.finder, pid=14492, auid=501, euid=501, binary_path=/System/Library/CoreServices/Finder.app/Contents/MacOS/Finder
+2026-11-11 04:10:29.975 Db tccd[14004:216dc1] [com.apple.TCC:access] DR Identity for accessing={TCCDProcess: identifier=com.apple.finder, pid=14492, auid=501, euid=501, binary_path=/System/Library/CoreServices/Finder.app/Contents/MacOS/Finder}, requesting={TCCDProcess: identifier=com.apple.finder, pid=14492, auid=501, euid=501, binary_path=/System/Library/CoreServices/Finder.app/Contents/MacOS/Finder}, : {
+    kTCCCodeIdentityAuditToken = {length = 32, bytes = 0xf5010000 f5010000 14000000 f5010000 ... 09880100 96a70000 };
+    kTCCCodeIdentityAuthority = kTCCCodeIdentityDesignatedRequirementAuthority;
+    kTCCCodeIdentityCSFlags = 637631233;
+    kTCCCodeIdentityCanSendToAnyTarget = 1;
+    kTCCCodeIdentityDesignatedRequirementData = {length = 44, bytes = 0xfade0c00 0000002c 00000001 00000006 ... 6e646572 00000003 };
+    kTCCCodeIdentityExecutableURL = "file:///System/Library/CoreServices/Finder.app/Contents/MacOS/Finder";
+    kTCCCodeIdentityIdentifier = "com.apple.finder";
+    kTCCCodeIdentityIdentifierType = 0;
+    kTCCCodeIdentityPlatformType = 1;
+    kTCCCodeIdentityPromptPoli
+2026-11-11 04:10:29.975 I  tccd[14004:216dc1] [com.apple.TCC:access] do_TCCAccessRequestIndirect: indirect object information processed
+2026-11-11 04:10:29.975 Df tccd[14004:216dc1] [com.apple.TCC:access] target_executable_path_URL: file:///Users/user/Library/Application%20Support/Claude/claude-code/2.1.321/ddbdf2b334e1/claude.app/Contents/MacOS/claude
+2026-11-11 04:10:29.975 I  tccd[14004:216dc1] [com.apple.TCC:access] AttributionChain: accessing={TCCDProcess: identifier=com.apple.finder, pid=14492, auid=501, euid=501, binary_path=/System/Library/CoreServices/Finder.app/Contents/MacOS/Finder}, requesting={TCCDProcess: identifier=com.apple.finder, pid=14492, auid=501, euid=501, binary_path=/System/Library/CoreServices/Finder.app/Contents/MacOS/Finder},
+2026-11-11 04:10:29.976 Db tccd[14004:216dc1] [com.apple.TCC:access] Identified provisional outer-most app bundle for <private> as <private>
+2026-11-11 04:10:29.976 I  tccd[14004:216dc1] [com.apple.TCC:access] -[TCCDAccessIdentity initWithIdentifier:type:executableURL:SDKVersion:platformType:]: self.bundle=0x78ff1ec090, bundle:<TCCDBundle: bundleID=com.anthropic.claude-code, version=2.1.321, path=/Users/user/Library/Application Support/Claude/claude-code/2.1.321/ddbdf2b334e1/claude.app>; for: com.anthropic.claude-code, URL: file:///Users/user/Library/Application%20Support/Claude/claude-code/2.1.321/ddbdf2b334e1/claude.app/Contents/MacOS/claude, /Users/user/Library/Application Support/Claude/claude-code/2.1.321/ddbdf2b334e1/claude.app/Contents/MacOS/claude
+2026-11-11 04:10:29.976 I  tccd[14004:216dc1] [com.apple.TCC:access] do_TCCAccessRequestIndirect: checking access against database
+2026-11-11 04:10:29.976 I  tccd[14004:216dc1] [com.apple.TCC:access] do_TCCAccessRequestIndirect_block_invoke: target Requirements match for <private> : com.apple.finder
+2026-11-11 04:10:29.976 I  tccd[14004:216dc1] [com.apple.TCC:access] do_TCCAccessRequestIndirect_block_invoke: indirect object Requirements match for <private> : com.apple.finder
+2026-11-11 04:10:29.976 I  tccd[14004:216dc1] [com.apple.TCC:access] Handling access request: kTCCServiceAppleEvents:<private>:com.apple.finder, default_allow: 0, authValue: 2,
+2026-11-11 04:10:29.976 I  tccd[14004:216dc1] [com.apple.TCC:access] REPLY_MSG: msg={
+	result=true
+}
+2026-11-11 04:10:29.976 Df tccd[14004:216dc1] [com.apple.TCC:access] REPLY: (501) function=TCCAccessRequestIndirect, msgID=14492.5
+2026-11-11 04:10:29.977 I  Finder[14492:213abf] [com.apple.TCC:access] RECV: asynchronous reply <dictionary: 0x7c375b2800> { count = 1, transaction: 0, voucher = 0x7c3b824af0, contents =
+	"result" => <bool: 0x1f9bcda60>: true
+}
+2026-11-11 04:10:29.977 Df Finder[14492:213abf] [com.apple.TCC:access] TCCAccessRequestIndirect_block_invoke: access request result was 1, timeout was 0
+2026-11-11 04:10:34.947 Df tccd[473:216edd] [com.apple.TCC:access] REQUEST: tccd_uid=0, sender_pid=88302, sender_uid=501, sender_auid=501, function=TCCAccessRequest, msgID=88302.1
+2026-11-11 04:10:34.947 I  osascript[88302:2173f2] [com.apple.TCC:access] SEND: 0/7 synchronous to com.apple.tccd.system: request: msgID=88302.1, function=TCCAccessRequest, service=kTCCServiceListenEvent,
+2026-11-11 04:10:34.947 I  tccd[473:216edd] [com.apple.TCC:access] REQUEST_MSG: msgID=88302.1, msg={
+	require_purpose=<xpc_null>
+	service="kTCCServiceListenEvent"
+	function="TCCAccessRequest"
+	preflight=true
+	target_token={NULL}
+	TCCD_MSG_ID="88302.1"
+	background_session=false
+}
+2026-11-11 04:10:34.947 I  tccd[473:216edd] [com.apple.TCC:access] AttributionChain: responsible={TCCDProcess: identifier=com.anthropic.claude-code, pid=86600, auid=501, euid=501, responsible_path=/Users/user/Library/Application Support/Claude/claude-code/2.1.321/ddbdf2b334e1/claude.app/Contents/MacOS/claude, binary_path=/Users/user/Library/Application Support/Claude/claude-code/2.1.321/ddbdf2b334e1/claude.app/Contents/MacOS/claude}, requesting={TCCDProcess: identifier=com.apple.osascript, pid=88302, auid=501, euid=501, binary_path=/usr/bin/osascript},
+2026-11-11 04:10:34.948 I  tccd[473:216edd] [com.apple.TCC:access] AttributionChain: responsible={TCCDProcess: identifier=com.anthropic.claude-code, pid=86600, auid=501, euid=501, responsible_path=/Users/user/Library/Application Support/Claude/claude-code/2.1.321/ddbdf2b334e1/claude.app/Contents/MacOS/claude, binary_path=/Users/user/Library/Application Support/Claude/claude-code/2.1.321/ddbdf2b334e1/claude.app/Contents/MacOS/claude}, requesting={TCCDProcess: identifier=com.apple.osascript, pid=88302, auid=501, euid=501, binary_path=/usr/bin/osascript},
+2026-11-11 04:10:34.948 Df tccd[473:216edd] [com.apple.TCC:access] AUTHREQ_CTX: msgID=88302.1, function=<private>, service=kTCCServiceListenEvent, preflight=yes, query=1, client_dict=(null), daemon_dict=<private>
+2026-11-11 04:10:34.948 Df tccd[473:216edd] [com.apple.TCC:access] AUTHREQ_ATTRIBUTION: msgID=88302.1, attribution={responsible={TCCDProcess: identifier=com.anthropic.claude-code, pid=86600, auid=501, euid=501, responsible_path=/Users/user/Library/Application Support/Claude/claude-code/2.1.321/ddbdf2b334e1/claude.app/Contents/MacOS/claude, binary_path=/Users/user/Library/Application Support/Claude/claude-code/2.1.321/ddbdf2b334e1/claude.app/Contents/MacOS/claude}, requesting={TCCDProcess: identifier=com.apple.osascript, pid=88302, auid=501, euid=501, binary_path=/usr/bin/osascript}, },
+2026-11-11 04:10:34.948 Df tccd[473:216edd] [com.apple.TCC:access] <private> does not support RBS assertion override
+2026-11-11 04:10:34.948 Db tccd[473:216edd] [com.apple.TCC:access] IDENTITY_ATTRIBUTION: starting for: /Users/user/Library/Application Support/Claude/claude-code/2.1.321/ddbdf2b334e1/claude.app/Contents/MacOS/claude
+2026-11-11 04:10:34.948 Db tccd[473:216edd] [com.apple.TCC:access] BUNDLE_ATTRIBUTION:  derivedResponsibleProcess: isDistinct: Yes
+   path: <private>
+bundle: main executable: <private>
+ bundle path: <private>
+    url: <private>
+2026-11-11 04:10:34.948 I  tccd[473:216edd] [com.apple.TCC:access] BUNDLE_ATTRIBUTION: /Users/user/Library/Application Support/Claude/claude-code/2.1.321/ddbdf2b334e1/claude.app/Contents/MacOS/claude is main executable for candidateBundle(/Users/user/Library/Application Support/Claude/claude-code/2.1.321/ddbdf2b334e1/claude.app).
+2026-11-11 04:10:34.948 I  tccd[473:216edd] [com.apple.TCC:access] BUNDLE_ATTRIBUTION: executable path file:///Users/user/Library/Application%20Support/Claude/claude-code/2.1.321/ddbdf2b334e1/claude.app/Contents/MacOS/claude resolves to attributed bundle: file:///Users/user/Library/Application%20Support/Claude/claude-code/2.1.321/ddbdf2b334e1/claude.app/
+2026-11-11 04:10:34.948 Db tccd[473:216edd] [com.apple.TCC:access] IDENTITY_ATTRIBUTION: identifier = com.anthropic.claude-code, type 0
+2026-11-11 04:10:34.948 Db tccd[473:216edd] [com.apple.TCC:access] identityCache: evicting: us.zoom.xos
+2026-11-11 04:10:34.948 Db tccd[473:216edd] [com.apple.TCC:access] identityCache: adding: com.anthropic.claude-code for accessor: ([88302.559001], 100361), responsible: ([86600.556559], 100361), idx: 77
+2026-11-11 04:10:34.948 Df tccd[473:216edd] [com.apple.TCC:access] AUTHREQ_SUBJECT: msgID=88302.1, subject=com.anthropic.claude-code,
+2026-11-11 04:10:34.948 Db tccd[473:216edd] [com.apple.TCC:access] Evaluated composed authorization from kTCCServiceListenEvent to parent service kTCCServicePostEvent: Auth:Unknown (None)
+2026-11-11 04:10:34.948 Db tccd[473:216edd] [com.apple.TCC:access] Evaluated composed authorization from kTCCServicePostEvent to parent service kTCCServiceAccessibility: Auth:Unknown (None)
+2026-11-11 04:10:34.948 Db tccd[473:216edb] [com.apple.TCC:access] Registered LSApplicationRecord for file:///Users/user/Library/Application%20Support/Claude/claude-code/2.1.321/ddbdf2b334e1/claude.app/
+2026-11-11 04:10:34.949 Df tccd[473:216edd] [com.apple.TCC:access] -[TCCDAccessIdentity staticCode]: static code for: identifier com.anthropic.claude-code, type: 0: 0x7526d5c300 at /Users/user/Library/Application Support/Claude/claude-code/2.1.321/ddbdf2b334e1/claude.app
+2026-11-11 04:10:34.953 E  tccd[473:216edb] [com.apple.TCC:access] State dump of 4036 bytes
+2026-11-11 04:10:34.955 I  tccd[473:216edd] [com.apple.TCC:access] -[TCCDAccessIdentity matchesCodeRequirement:]: SecStaticCodeCheckValidity() static code (0x7526d5c300) from com.anthropic.claude-code : anchor apple; status: -67050
+2026-11-11 04:10:34.955 I  tccd[473:216edd] [com.apple.TCC:access] For com.anthropic.claude-code: matches platform requirements: No
+2026-11-11 04:10:34.955 I  tccd[473:216edd] [com.apple.TCC:access] <TCCDProcess: identifier=com.apple.osascript, pid=88302> has the com.apple.private.tcc.allow-prompting entitlement for service kTCCServiceAll (composed to parent: (null))
+2026-11-11 04:10:34.955 Df tccd[473:216edd] [com.apple.TCC:access] accessing process has com.apple.private.tcc.allow-prompting entitlement
+2026-11-11 04:10:34.955 I  tccd[473:216edd] [com.apple.TCC:access] -[TCCDPlatformMacOS promptingPolicyForIdentity:accessingService:withAttributionChain:]: promptPolicy = 2; isApplePlatformBinary = 0
+2026-11-11 04:10:34.955 I  osascript[88302:2173f2] [com.apple.TCC:access] RECV: synchronous reply <dictionary: 0x7a2cc64200> { count = 6, transaction: 0, voucher = 0x0, contents =
+	"prompt_type" => <uint64: 0xbb9e46aa873d5bdf>: 1
+	"do_not_cache" => <bool: 0x1f9bcda60>: true
+	"auth_value" => <uint64: 0xbb9e46aa873d5bdf>: 1
+	"preflight_unknown" => <bool: 0x1f9bcda60>: true
+	"auth_version" => <uint64: 0xbb9e46aa873d5bdf>: 1
+	"auth_reason" => <uint64: 0xbb9e46aa873d5bff>: 5
+}
+2026-11-11 04:10:34.955 I  tccd[473:216edd] [com.apple.TCC:access] Handling access request to kTCCServiceListenEvent, from Sub:{com.anthropic.claude-code}Resp:{TCCDProcess: identifier=com.anthropic.claude-code, pid=86600, auid=501, euid=501, responsible_path=/Users/user/Library/Application Support/Claude/claude-code/2.1.321/ddbdf2b334e1/claude.app/Contents/MacOS/claude, binary_path=/Users/user/Library/Application Support/Claude/claude-code/2.1.321/ddbdf2b334e1/claude.app/Contents/MacOS/claude}, ReqResult(Auth Right: Unknown (None), promptType: 1,DB Action:None, UpdateVerifierData)
+2026-11-11 04:10:34.955 Df tccd[473:216edd] [com.apple.TCC:access] AUTHREQ_RESULT: msgID=88302.1, authValue=1, authReason=5, authVersion=1, desired_auth=0, error=(null),
+2026-11-11 04:10:34.955 I  tccd[473:216edd] [com.apple.TCC:access] REPLY_MSG: msg={
+	prompt_type=1 (0x1)
+	do_not_cache=true
+	auth_value=1 (0x1)
+	preflight_unknown=true
+	auth_version=1 (0x1)
+	auth_reason=5 (0x5)
+}
+2026-11-11 04:10:34.955 Df tccd[473:216edd] [com.apple.TCC:access] REPLY: (0) function=TCCAccessRequest, msgID=88302.1
+2026-11-11 04:10:34.956 I  WindowServer[471:216df5] [com.apple.TCC:access] SEND: 0/7 synchronous to com.apple.tccd.system: request: msgID=471.2099, function=TCCAccessRequest, service=kTCCServiceListenEvent, target_token={pid:88302, auid:501, euid:501},
+2026-11-11 04:10:34.957 Df tccd[473:216edd] [com.apple.TCC:access] REQUEST: tccd_uid=0, sender_pid=471, sender_uid=88, sender_auid=-1, function=TCCAccessRequest, msgID=471.2099
+2026-11-11 04:10:34.957 I  tccd[473:216edd] [com.apple.TCC:access] REQUEST_MSG: msgID=471.2099, msg={
+	require_purpose=<xpc_null>
+	service="kTCCServiceListenEvent"
+	function="TCCAccessRequest"
+	preflight=true
+	target_token={pid:88302, auid:501, euid:501}
+	TCCD_MSG_ID="471.2099"
+	background_session=false
+}
+2026-11-11 04:10:34.957 I  tccd[473:216edd] [com.apple.TCC:access] AttributionChain: responsible={TCCDProcess: identifier=com.anthropic.claude-code, pid=86600, auid=501, euid=501, responsible_path=/Users/user/Library/Application Support/Claude/claude-code/2.1.321/ddbdf2b334e1/claude.app/Contents/MacOS/claude, binary_path=/Users/user/Library/Application Support/Claude/claude-code/2.1.321/ddbdf2b334e1/claude.app/Contents/MacOS/claude}, accessing={TCCDProcess: identifier=com.apple.osascript, pid=88302, auid=501, euid=501, binary_path=/usr/bin/osascript}, requesting={TCCDProcess: identifier=com.apple.WindowServer, pid=471, auid=88, euid=88, binary_path=/System/Library/PrivateFrameworks/SkyLight.framework/Versions/A/Resources/WindowServer},
+2026-11-11 04:10:34.957 I  tccd[473:216edd] [com.apple.TCC:access] <TCCDProcess: identifier=com.apple.WindowServer, pid=471> has the com.apple.private.tcc.manager.check-by-audit-token entitlement for service kTCCServiceListenEvent (composed to parent: (null))
+2026-11-11 04:10:34.957 I  tccd[473:216edd] [com.apple.TCC:access] AttributionChain: responsible={TCCDProcess: identifier=com.anthropic.claude-code, pid=86600, auid=501, euid=501, responsible_path=/Users/user/Library/Application Support/Claude/claude-code/2.1.321/ddbdf2b334e1/claude.app/Contents/MacOS/claude, binary_path=/Users/user/Library/Application Support/Claude/claude-code/2.1.321/ddbdf2b334e1/claude.app/Contents/MacOS/claude}, accessing={TCCDProcess: identifier=com.apple.osascript, pid=88302, auid=501, euid=501, binary_path=/usr/bin/osascript}, requesting={TCCDProcess: identifier=com.apple.WindowServer, pid=471, auid=88, euid=88, binary_path=/System/Library/PrivateFrameworks/SkyLight.framework/Versions/A/Resources/WindowServer},
+2026-11-11 04:10:34.957 Df tccd[473:216edd] [com.apple.TCC:access] AUTHREQ_CTX: msgID=471.2099, function=<private>, service=kTCCServiceListenEvent, preflight=yes, query=1, client_dict=(null), daemon_dict=<private>
+2026-11-11 04:10:34.957 Df tccd[473:216edd] [com.apple.TCC:access] AUTHREQ_ATTRIBUTION: msgID=471.2099, attribution={responsible={TCCDProcess: identifier=com.anthropic.claude-code, pid=86600, auid=501, euid=501, responsible_path=/Users/user/Library/Application Support/Claude/claude-code/2.1.321/ddbdf2b334e1/claude.app/Contents/MacOS/claude, binary_path=/Users/user/Library/Application Support/Claude/claude-code/2.1.321/ddbdf2b334e1/claude.app/Contents/MacOS/claude}, accessing={TCCDProcess: identifier=com.apple.osascript, pid=88302, auid=501, euid=501, binary_path=/usr/bin/osascript}, requesting={TCCDProcess: identifier=com.apple.WindowServer, pid=471, auid=88, euid=88, binary_path=/System/Library/PrivateFrameworks/SkyLight.framework/Versions/A/Resources/WindowServer}, },
+2026-11-11 04:10:34.957 I  tccd[473:216edd] [com.apple.TCC:access] <TCCDProcess: identifier=com.apple.WindowServer, pid=471> has the com.apple.private.tcc.manager.check-by-audit-token entitlement for service kTCCServiceListenEvent (composed to parent: (null))
+2026-11-11 04:10:34.957 Df tccd[473:216edd] [com.apple.TCC:access] requestor: TCCDProcess: identifier=com.apple.WindowServer, pid=471, auid=88, euid=88, binary_path=/System/Library/PrivateFrameworks/SkyLight.framework/Versions/A/Resources/WindowServer is checking access for accessor TCCDProcess: identifier=com.apple.osascript, pid=88302, auid=501, euid=501, binary_path=/usr/bin/osascript
+2026-11-11 04:10:34.957 Df tccd[473:216edd] [com.apple.TCC:access] <private> does not support RBS assertion override
+2026-11-11 04:10:34.957 Db tccd[473:216edd] [com.apple.TCC:access] IDENTITY_ATTRIBUTION: starting for: /Users/user/Library/Application Support/Claude/claude-code/2.1.321/ddbdf2b334e1/claude.app/Contents/MacOS/claude
+2026-11-11 04:10:34.957 I  tccd[473:216edd] [com.apple.TCC:access] IDENTITY_ATTRIBUTION: /Users/user/Library/Application Support/Claude/claude-code/2.1.321/ddbdf2b334e1/claude.app/Contents/MacOS/claude[471]: from cache: = com.anthropic.claude-code, type 0 (1498/2850)
+2026-11-11 04:10:34.957 Df tccd[473:216edd] [com.apple.TCC:access] AUTHREQ_SUBJECT: msgID=471.2099, subject=com.anthropic.claude-code,
+2026-11-11 04:10:34.957 Db tccd[473:216edd] [com.apple.TCC:access] Evaluated composed authorization from kTCCServiceListenEvent to parent service kTCCServicePostEvent: Auth:Unknown (None)
+2026-11-11 04:10:34.957 Db tccd[473:216edd] [com.apple.TCC:access] Evaluated composed authorization from kTCCServicePostEvent to parent service kTCCServiceAccessibility: Auth:Unknown (None)
+2026-11-11 04:10:34.957 Db tccd[473:216edb] [com.apple.TCC:access] register with resolver: binary:file:///usr/bin/osascript, bundle file:///usr/bin/ -- failed: isApp:0
+2026-11-11 04:10:34.958 Db tccd[473:216edb] [com.apple.TCC:access] Registered LSApplicationRecord for file:///Users/user/Library/Application%20Support/Claude/claude-code/2.1.321/ddbdf2b334e1/claude.app/
+2026-11-11 04:10:34.958 Df tccd[473:216edd] [com.apple.TCC:access] -[TCCDAccessIdentity staticCode]: static code for: identifier com.anthropic.claude-code, type: 0: 0x7526d5c300 at /Users/user/Library/Application Support/Claude/claude-code/2.1.321/ddbdf2b334e1/claude.app
+2026-11-11 04:10:34.963 I  tccd[473:216edd] [com.apple.TCC:access] -[TCCDAccessIdentity matchesCodeRequirement:]: SecStaticCodeCheckValidity() static code (0x7526d5c300) from com.anthropic.claude-code : anchor apple; status: -67050
+2026-11-11 04:10:34.963 I  tccd[473:216edd] [com.apple.TCC:access] For com.anthropic.claude-code: matches platform requirements: No
+2026-11-11 04:10:34.963 I  tccd[473:216edd] [com.apple.TCC:access] <TCCDProcess: identifier=com.apple.osascript, pid=88302> has the com.apple.private.tcc.allow-prompting entitlement for service kTCCServiceAll (composed to parent: (null))
+2026-11-11 04:10:34.963 Df tccd[473:216edd] [com.apple.TCC:access] accessing process has com.apple.private.tcc.allow-prompting entitlement
+2026-11-11 04:10:34.963 I  WindowServer[471:216df5] [com.apple.TCC:access] RECV: synchronous reply <dictionary: 0x7951b7ac00> { count = 5, transaction: 0, voucher = 0x0, contents =
+	"prompt_type" => <uint64: 0x8ba3e61c581a7f1f>: 1
+	"auth_value" => <uint64: 0x8ba3e61c581a7f1f>: 1
+	"preflight_unknown" => <bool: 0x1f9bcda60>: true
+	"auth_version" => <uint64: 0x8ba3e61c581a7f1f>: 1
+	"auth_reason" => <uint64: 0x8ba3e61c581a7f3f>: 5
+}
+2026-11-11 04:10:34.963 I  tccd[473:216edd] [com.apple.TCC:access] -[TCCDPlatformMacOS promptingPolicyForIdentity:accessingService:withAttributionChain:]: promptPolicy = 2; isApplePlatformBinary = 0
+2026-11-11 04:10:34.963 I  tccd[473:216edd] [com.apple.TCC:access] Handling access request to kTCCServiceListenEvent, from Sub:{com.anthropic.claude-code}Resp:{TCCDProcess: identifier=com.anthropic.claude-code, pid=86600, auid=501, euid=501, responsible_path=/Users/user/Library/Application Support/Claude/claude-code/2.1.321/ddbdf2b334e1/claude.app/Contents/MacOS/claude, binary_path=/Users/user/Library/Application Support/Claude/claude-code/2.1.321/ddbdf2b334e1/claude.app/Contents/MacOS/claude}, ReqResult(Auth Right: Unknown (None), promptType: 1,DB Action:None, UpdateVerifierData)
+2026-11-11 04:10:34.963 Df tccd[473:216edd] [com.apple.TCC:access] AUTHREQ_RESULT: msgID=471.2099, authValue=1, authReason=5, authVersion=1, desired_auth=0, error=(null),
+2026-11-11 04:10:34.963 I  tccd[473:216edd] [com.apple.TCC:access] REPLY_MSG: msg={
+	prompt_type=1 (0x1)
+	auth_value=1 (0x1)
+	preflight_unknown=true
+	auth_version=1 (0x1)
+	auth_reason=5 (0x5)
+}
+2026-11-11 04:10:34.963 Df tccd[473:216edd] [com.apple.TCC:access] REPLY: (0) function=TCCAccessRequest, msgID=471.2099
+2026-11-11 04:10:34.963 I  WindowServer[471:121f] [com.apple.TCC:access] SEND: 0/7 synchronous to com.apple.tccd.system: request: msgID=471.2100, function=TCCAccessRequest, service=kTCCServiceListenEvent, target_token={pid:88302, auid:501, euid:501},
+2026-11-11 04:10:34.963 Df tccd[473:216edb] [com.apple.TCC:access] REQUEST: tccd_uid=0, sender_pid=471, sender_uid=88, sender_auid=-1, function=TCCAccessRequest, msgID=471.2100
+2026-11-11 04:10:34.963 I  tccd[473:216edb] [com.apple.TCC:access] REQUEST_MSG: msgID=471.2100, msg={
+	require_purpose=<xpc_null>
+	service="kTCCServiceListenEvent"
+	function="TCCAccessRequest"
+	preflight=true
+	target_token={pid:88302, auid:501, euid:501}
+	TCCD_MSG_ID="471.2100"
+	background_session=false
+}
+2026-11-11 04:10:34.964 I  tccd[473:216edb] [com.apple.TCC:access] AttributionChain: responsible={TCCDProcess: identifier=com.anthropic.claude-code, pid=86600, auid=501, euid=501, responsible_path=/Users/user/Library/Application Support/Claude/claude-code/2.1.321/ddbdf2b334e1/claude.app/Contents/MacOS/claude, binary_path=/Users/user/Library/Application Support/Claude/claude-code/2.1.321/ddbdf2b334e1/claude.app/Contents/MacOS/claude}, accessing={TCCDProcess: identifier=com.apple.osascript, pid=88302, auid=501, euid=501, binary_path=/usr/bin/osascript}, requesting={TCCDProcess: identifier=com.apple.WindowServer, pid=471, auid=88, euid=88, binary_path=/System/Library/PrivateFrameworks/SkyLight.framework/Versions/A/Resources/WindowServer},
+2026-11-11 04:10:34.964 I  tccd[473:216edb] [com.apple.TCC:access] <TCCDProcess: identifier=com.apple.WindowServer, pid=471> has the com.apple.private.tcc.manager.check-by-audit-token entitlement for service kTCCServiceListenEvent (composed to parent: (null))
+2026-11-11 04:10:34.964 I  tccd[473:216edb] [com.apple.TCC:access] AttributionChain: responsible={TCCDProcess: identifier=com.anthropic.claude-code, pid=86600, auid=501, euid=501, responsible_path=/Users/user/Library/Application Support/Claude/claude-code/2.1.321/ddbdf2b334e1/claude.app/Contents/MacOS/claude, binary_path=/Users/user/Library/Application Support/Claude/claude-code/2.1.321/ddbdf2b334e1/claude.app/Contents/MacOS/claude}, accessing={TCCDProcess: identifier=com.apple.osascript, pid=88302, auid=501, euid=501, binary_path=/usr/bin/osascript}, requesting={TCCDProcess: identifier=com.apple.WindowServer, pid=471, auid=88, euid=88, binary_path=/System/Library/PrivateFrameworks/SkyLight.framework/Versions/A/Resources/WindowServer},
+2026-11-11 04:10:34.964 Df tccd[473:216edb] [com.apple.TCC:access] AUTHREQ_CTX: msgID=471.2100, function=<private>, service=kTCCServiceListenEvent, preflight=yes, query=1, client_dict=(null), daemon_dict=<private>
+2026-11-11 04:10:34.964 Df tccd[473:216edb] [com.apple.TCC:access] AUTHREQ_ATTRIBUTION: msgID=471.2100, attribution={responsible={TCCDProcess: identifier=com.anthropic.claude-code, pid=86600, auid=501, euid=501, responsible_path=/Users/user/Library/Application Support/Claude/claude-code/2.1.321/ddbdf2b334e1/claude.app/Contents/MacOS/claude, binary_path=/Users/user/Library/Application Support/Claude/claude-code/2.1.321/ddbdf2b334e1/claude.app/Contents/MacOS/claude}, accessing={TCCDProcess: identifier=com.apple.osascript, pid=88302, auid=501, euid=501, binary_path=/usr/bin/osascript}, requesting={TCCDProcess: identifier=com.apple.WindowServer, pid=471, auid=88, euid=88, binary_path=/System/Library/PrivateFrameworks/SkyLight.framework/Versions/A/Resources/WindowServer}, },
+2026-11-11 04:10:34.964 I  tccd[473:216edb] [com.apple.TCC:access] <TCCDProcess: identifier=com.apple.WindowServer, pid=471> has the com.apple.private.tcc.manager.check-by-audit-token entitlement for service kTCCServiceListenEvent (composed to parent: (null))
+2026-11-11 04:10:34.964 Df tccd[473:216edb] [com.apple.TCC:access] requestor: TCCDProcess: identifier=com.apple.WindowServer, pid=471, auid=88, euid=88, binary_path=/System/Library/PrivateFrameworks/SkyLight.framework/Versions/A/Resources/WindowServer is checking access for accessor TCCDProcess: identifier=com.apple.osascript, pid=88302, auid=501, euid=501, binary_path=/usr/bin/osascript
+2026-11-11 04:10:34.964 Df tccd[473:216edb] [com.apple.TCC:access] <private> does not support RBS assertion override
+2026-11-11 04:10:34.964 Db tccd[473:216edb] [com.apple.TCC:access] IDENTITY_ATTRIBUTION: starting for: /Users/user/Library/Application Support/Claude/claude-code/2.1.321/ddbdf2b334e1/claude.app/Contents/MacOS/claude
+2026-11-11 04:10:34.964 I  tccd[473:216edb] [com.apple.TCC:access] IDENTITY_ATTRIBUTION: /Users/user/Library/Application Support/Claude/claude-code/2.1.321/ddbdf2b334e1/claude.app/Contents/MacOS/claude[471]: from cache: = com.anthropic.claude-code, type 0 (1499/2851)
+2026-11-11 04:10:34.964 Df tccd[473:216edb] [com.apple.TCC:access] AUTHREQ_SUBJECT: msgID=471.2100, subject=com.anthropic.claude-code,
+2026-11-11 04:10:34.964 Db tccd[473:216edb] [com.apple.TCC:access] Evaluated composed authorization from kTCCServiceListenEvent to parent service kTCCServicePostEvent: Auth:Unknown (None)
+2026-11-11 04:10:34.964 Db tccd[473:216edb] [com.apple.TCC:access] Evaluated composed authorization from kTCCServicePostEvent to parent service kTCCServiceAccessibility: Auth:Unknown (None)
+2026-11-11 04:10:34.964 Db tccd[473:216edd] [com.apple.TCC:access] register with resolver: binary:file:///usr/bin/osascript, bundle file:///usr/bin/ -- failed: isApp:0
+2026-11-11 04:10:34.964 Db tccd[473:216edd] [com.apple.TCC:access] Registered LSApplicationRecord for file:///Users/user/Library/Application%20Support/Claude/claude-code/2.1.321/ddbdf2b334e1/claude.app/
+2026-11-11 04:10:34.964 Df tccd[473:216edb] [com.apple.TCC:access] -[TCCDAccessIdentity staticCode]: static code for: identifier com.anthropic.claude-code, type: 0: 0x7526d5c300 at /Users/user/Library/Application Support/Claude/claude-code/2.1.321/ddbdf2b334e1/claude.app
+2026-11-11 04:10:34.969 I  tccd[473:216edb] [com.apple.TCC:access] -[TCCDAccessIdentity matchesCodeRequirement:]: SecStaticCodeCheckValidity() static code (0x7526d5c300) from com.anthropic.claude-code : anchor apple; status: -67050
+2026-11-11 04:10:34.970 I  tccd[473:216edb] [com.apple.TCC:access] For com.anthropic.claude-code: matches platform requirements: No
+2026-11-11 04:10:34.970 I  tccd[473:216edb] [com.apple.TCC:access] <TCCDProcess: identifier=com.apple.osascript, pid=88302> has the com.apple.private.tcc.allow-prompting entitlement for service kTCCServiceAll (composed to parent: (null))
+2026-11-11 04:10:34.970 Df tccd[473:216edb] [com.apple.TCC:access] accessing process has com.apple.private.tcc.allow-prompting entitlement
+2026-11-11 04:10:34.970 I  tccd[473:216edb] [com.apple.TCC:access] -[TCCDPlatformMacOS promptingPolicyForIdentity:accessingService:withAttributionChain:]: promptPolicy = 2; isApplePlatformBinary = 0
+2026-11-11 04:10:34.970 I  tccd[473:216edb] [com.apple.TCC:access] Handling access request to kTCCServiceListenEvent, from Sub:{com.anthropic.claude-code}Resp:{TCCDProcess: identifier=com.anthropic.claude-code, pid=86600, auid=501, euid=501, responsible_path=/Users/user/Library/Application Support/Claude/claude-code/2.1.321/ddbdf2b334e1/claude.app/Contents/MacOS/claude, binary_path=/Users/user/Library/Application Support/Claude/claude-code/2.1.321/ddbdf2b334e1/claude.app/Contents/MacOS/claude}, ReqResult(Auth Right: Unknown (None), promptType: 1,DB Action:None, UpdateVerifierData)
+2026-11-11 04:10:34.970 I  WindowServer[471:121f] [com.apple.TCC:access] RECV: synchronous reply <dictionary: 0x7951b7ac00> { count = 5, transaction: 0, voucher = 0x0, contents =
+	"prompt_type" => <uint64: 0x8ba3e61c581a7f1f>: 1
+	"auth_value" => <uint64: 0x8ba3e61c581a7f1f>: 1
+	"preflight_unknown" => <bool: 0x1f9bcda60>: true
+	"auth_version" => <uint64: 0x8ba3e61c581a7f1f>: 1
+	"auth_reason" => <uint64: 0x8ba3e61c581a7f3f>: 5
+}
+2026-11-11 04:10:34.970 Df tccd[473:216edb] [com.apple.TCC:access] AUTHREQ_RESULT: msgID=471.2100, authValue=1, authReason=5, authVersion=1, desired_auth=0, error=(null),
+2026-11-11 04:10:34.970 I  tccd[473:216edb] [com.apple.TCC:access] REPLY_MSG: msg={
+	prompt_type=1 (0x1)
+	auth_value=1 (0x1)
+	preflight_unknown=true
+	auth_version=1 (0x1)
+	auth_reason=5 (0x5)
+}
+2026-11-11 04:10:34.970 Df tccd[473:216edb] [com.apple.TCC:access] REPLY: (0) function=TCCAccessRequest, msgID=471.2100
+2026-11-11 04:10:34.974 I  appleeventsd[705:216daa] [com.apple.TCC:access] SEND: 0/4 synchronous to com.apple.tccd.system: request: msgID=705.382, function=TCCCreateDesignatedRequirementIdentityFromAuditTokenForService, service=kTCCServiceAppleEvents, target_token={pid:88302, auid:501, euid:501},
+2026-11-11 04:10:34.974 Df tccd[473:216edd] [com.apple.TCC:access] REQUEST: tccd_uid=0, sender_pid=705, sender_uid=55, sender_auid=-1, function=TCCCreateDesignatedRequirementIdentityFromAuditTokenForService, msgID=705.382
+2026-11-11 04:10:34.974 I  tccd[473:216edd] [com.apple.TCC:access] REQUEST_MSG: msgID=705.382, msg={
+	service="kTCCServiceAppleEvents"
+	function="TCCCreateDesignatedRequirementIdentityFromAuditTokenForService"
+	target_token={pid:88302, auid:501, euid:501}
+	TCCD_MSG_ID="705.382"
+	input_identifier=<xpc_null>
+}
+2026-11-11 04:10:34.974 I  tccd[473:216edd] [com.apple.TCC:access] AttributionChain: responsible={TCCDProcess: identifier=com.anthropic.claude-code, pid=86600, auid=501, euid=501, responsible_path=/Users/user/Library/Application Support/Claude/claude-code/2.1.321/ddbdf2b334e1/claude.app/Contents/MacOS/claude, binary_path=/Users/user/Library/Application Support/Claude/claude-code/2.1.321/ddbdf2b334e1/claude.app/Contents/MacOS/claude}, accessing={TCCDProcess: identifier=com.apple.osascript, pid=88302, auid=501, euid=501, binary_path=/usr/bin/osascript}, requesting={TCCDProcess: identifier=com.apple.appleeventsd, pid=705, auid=55, euid=55, binary_path=/System/Library/CoreServices/appleeventsd},
+2026-11-11 04:10:34.974 I  tccd[473:216edd] [com.apple.TCC:access] do_TCCCreateDesignatedRequirementIdentityFromAuditTokenForService: processing incoming request
+2026-11-11 04:10:34.975 I  tccd[473:216edd] [com.apple.TCC:access] AttributionChain: responsible={TCCDProcess: identifier=com.anthropic.claude-code, pid=86600, auid=501, euid=501, responsible_path=/Users/user/Library/Application Support/Claude/claude-code/2.1.321/ddbdf2b334e1/claude.app/Contents/MacOS/claude, binary_path=/Users/user/Library/Application Support/Claude/claude-code/2.1.321/ddbdf2b334e1/claude.app/Contents/MacOS/claude}, accessing={TCCDProcess: identifier=com.apple.osascript, pid=88302, auid=501, euid=501, binary_path=/usr/bin/osascript}, requesting={TCCDProcess: identifier=com.apple.appleeventsd, pid=705, auid=55, euid=55, binary_path=/System/Library/CoreServices/appleeventsd},
+2026-11-11 04:10:34.976 Db tccd[473:216edd] [com.apple.TCC:access] IDENTITY_ATTRIBUTION: starting for: /Users/user/Library/Application Support/Claude/claude-code/2.1.321/ddbdf2b334e1/claude.app/Contents/MacOS/claude
+2026-11-11 04:10:34.984 Db tccd[473:216edd] [com.apple.TCC:access] Identified provisional outer-most app bundle for <private> as <private>
+2026-11-11 04:10:34.984 Db tccd[473:216edd] [com.apple.TCC:access] BUNDLE_ATTRIBUTION:  derivedResponsibleProcess: isDistinct: Yes
+   path: <private>
+bundle: main executable: <private>
+ bundle path: <private>
+    url: <private>
+2026-11-11 04:10:34.984 I  tccd[473:216edd] [com.apple.TCC:access] BUNDLE_ATTRIBUTION: /Users/user/Library/Application Support/Claude/claude-code/2.1.321/ddbdf2b334e1/claude.app/Contents/MacOS/claude is main executable for candidateBundle(/Users/user/Library/Application Support/Claude/claude-code/2.1.321/ddbdf2b334e1/claude.app).
+2026-11-11 04:10:34.984 I  tccd[473:216edd] [com.apple.TCC:access] BUNDLE_ATTRIBUTION: executable path file:///Users/user/Library/Application%20Support/Claude/claude-code/2.1.321/ddbdf2b334e1/claude.app/Contents/MacOS/claude resolves to attributed bundle: file:///Users/user/Library/Application%20Support/Claude/claude-code/2.1.321/ddbdf2b334e1/claude.app/
+2026-11-11 04:10:34.985 Db tccd[473:216edd] [com.apple.TCC:access] IDENTITY_ATTRIBUTION: identifier = com.anthropic.claude-code, type 0
+2026-11-11 04:10:34.985 Db tccd[473:216edd] [com.apple.TCC:access] identityCache: evicting: com.apple.AddressBook.abd
+2026-11-11 04:10:34.985 Db tccd[473:216edd] [com.apple.TCC:access] identityCache: adding: com.anthropic.claude-code for accessor: ([88302.559001], 100361), responsible: ([86600.556559], 100361), idx: 77
+2026-11-11 04:10:34.986 Df tccd[473:216edd] [com.apple.TCC:access] -[TCCDAccessIdentity staticCode]: static code for: identifier com.anthropic.claude-code, type: 0: 0x7526d5c300 at /Users/user/Library/Application Support/Claude/claude-code/2.1.321/ddbdf2b334e1/claude.app
+2026-11-11 04:10:35.001 Db tccd[473:216edd] [com.apple.TCC:access] -[TCCDAccessIdentity designatedRequirementData]: DR for identifier com.anthropic.claude-code with static code 0x7526d5c300: identifier "com.anthropic.claude-code" and anchor apple generic and certificate 1[field.1.2.840.113635.100.6.2.6] /* exists */ and certificate leaf[field.1.2.840.113635.100.6.1.13] /* exists */ and certificate leaf[subject.OU] = Q6L2SF6YDW
+2026-11-11 04:10:35.001 I  tccd[473:216edd] [com.apple.TCC:access] /Users/user/Library/Application Support/Claude/claude-code/2.1.321/ddbdf2b334e1/claude.app/Contents/MacOS/claude (offset 0) linked against SDK version 0x1a0500, platform: 1
+2026-11-11 04:10:35.002 I  tccd[473:216edd] [com.apple.TCC:access] -[TCCDAccessIdentity matchesCodeRequirement:]: SecStaticCodeCheckValidity() static code (0x7526d5c300) from com.anthropic.claude-code : anchor apple; status: -67050
+2026-11-11 04:10:35.002 I  tccd[473:216edd] [com.apple.TCC:access] For com.anthropic.claude-code: matches platform requirements: No
+2026-11-11 04:10:35.002 I  tccd[473:216edd] [com.apple.TCC:access] <TCCDProcess: identifier=com.apple.osascript, pid=88302> has the com.apple.private.tcc.allow-prompting entitlement for service kTCCServiceAll (composed to parent: (null))
+2026-11-11 04:10:35.002 Df tccd[473:216edd] [com.apple.TCC:access] accessing process has com.apple.private.tcc.allow-prompting entitlement
+2026-11-11 04:10:35.002 I  tccd[473:216edd] [com.apple.TCC:access] -[TCCDPlatformMacOS promptingPolicyForIdentity:accessingService:withAttributionChain:]: promptPolicy = 2; isApplePlatformBinary = 0
+2026-11-11 04:10:35.002 I  tccd[473:216edd] [com.apple.TCC:access] Derived team id of <private> for TCCDProcess: identifier=com.anthropic.claude-code, pid=86600, auid=501, euid=501, responsible_path=/Users/user/Library/Application Support/Claude/claude-code/2.1.321/ddbdf2b334e1/claude.app/Contents/MacOS/claude, binary_path=/Users/user/Library/Application Support/Claude/claude-code/2.1.321/ddbdf2b334e1/claude.app/Contents/MacOS/claude
+2026-11-11 04:10:35.002 Db tccd[473:216edd] [com.apple.TCC:access] DR Identity for responsible={TCCDProcess: identifier=com.anthropic.claude-code, pid=86600, auid=501, euid=501, responsible_path=/Users/user/Library/Application Support/Claude/claude-code/2.1.321/ddbdf2b334e1/claude.app/Contents/MacOS/claude, binary_path=/Users/user/Library/Application Support/Claude/claude-code/2.1.321/ddbdf2b334e1/claude.app/Contents/MacOS/claude}, accessing={TCCDProcess: identifier=com.apple.osascript, pid=88302, auid=501, euid=501, binary_path=/usr/bin/osascript}, requesting={TCCDProcess: identifier=com.apple.appleeventsd, pid=705, auid=55, euid=55, binary_path=/System/Library/CoreServices/appleeventsd}, : {
+    kTCCCodeIdentityAuditToken = {length = 32, bytes = 0xf5010000 f5010000 14000000 f5010000 ... 09880100 99870800 };
+    kTCCCodeIdentityAuthority = kTCCCodeIdentityDesignatedRequirementAuthority;
+    kTCCCodeIdentityCSFlags = 536937217;
+    kTCCCodeIdentityCanSendToAnyTarget = 0;
+    kTCCCodeIdentityDesignatedRequirementData = {length = 168, bytes = 0xfade0c00 000000a8 00000001 0000000
+2026-11-11 04:10:35.002 I  tccd[473:216edd] [com.apple.TCC:access] do_TCCCreateDesignatedRequirementIdentityFromAuditTokenForService: creating property list from identity dictionary
+2026-11-11 04:10:35.002 I  tccd[473:216edd] [com.apple.TCC:access] do_TCCCreateDesignatedRequirementIdentityFromAuditTokenForService: property list successfully created
+2026-11-11 04:10:35.002 I  tccd[473:216edd] [com.apple.TCC:access] REPLY_MSG: msg={
+	target_token={pid:88302, auid:501, euid:501}
+	response_dict=<data: 0x7526c21480>: { length = 924 bytes, contents = 0x62706c6973743030dc0102030405060708090a0b0c0d0e0f... }
+}
+2026-11-11 04:10:35.002 Df tccd[473:216edd] [com.apple.TCC:access] REPLY: (0) function=TCCCreateDesignatedRequirementIdentityFromAuditTokenForService, msgID=705.382
+2026-11-11 04:10:35.002 I  appleeventsd[705:216daa] [com.apple.TCC:access] RECV: synchronous reply <dictionary: 0x75710a8000> { count = 2, transaction: 0, voucher = 0x0, contents =
+	"target_token" => <data: 0x7570c6cb40>: { length = 32 bytes, contents = 0xf5010000f501000014000000f501000014000000ee580100... }
+	"response_dict" => <data: 0x7570c6c980>: { length = 924 bytes, contents = 0x62706c6973743030dc0102030405060708090a0b0c0d0e0f... }
+}
+2026-11-11 04:10:35.003 Df Finder[14492:214420] [com.apple.TCC:access] TCCAccessRequestIndirect: TCCAccessRequestIndirect with pid 14492: target_identity: {
+    kTCCCodeIdentityAuditToken = {length = 32, bytes = 0xf5010000 f5010000 14000000 f5010000 ... 09880100 99870800 };
+    kTCCCodeIdentityAuthority = kTCCCodeIdentityDesignatedRequirementAuthority;
+    kTCCCodeIdentityCSFlags = 536937217;
+    kTCCCodeIdentityCanSendToAnyTarget = 0;
+    kTCCCodeIdentityDesignatedRequirementData = {length = 168, bytes = 0xfade0c00 000000a8 00000001 00000006 ... 53463659 44570000 };
+    kTCCCodeIdentityExecutableURL = "file:///Users/user/Library/Application%20Support/Claude/claude-code/2.1.321/ddbdf2b334e1/claude.app/Contents/MacOS/claude";
+    kTCCCodeIdentityIdentifier = "com.anthropic.claude-code";
+    kTCCCodeIdentityIdentifierType = 0;
+    kTCCCodeIdentityPlatformType = 1;
+    kTCCCodeIdentityPromptPolicy = 2;
+    kTCCCodeIdentitySDKVersion = 1705216;
+    kTCCCodeIdentityTeamID = Q6L2SF6YDW;
+}
+2026-11-11 04:10:35.003 Db Finder[14492:214420] [com.apple.TCC:access] TCCAccessRequestIndirect: kTCCCodeIdentityIdentifier is <private>
+2026-11-11 04:10:35.003 Db Finder[14492:214420] [com.apple.TCC:access] TCCAccessRequestIndirect: kTCCCodeIdentityDesignatedRequirementData is 168 bytes
+2026-11-11 04:10:35.003 Db Finder[14492:214420] [com.apple.TCC:access] TCCAccessRequestIndirect: kTCCCodeIdentityIdentifierType is 0
+2026-11-11 04:10:35.003 Db Finder[14492:214420] [com.apple.TCC:access] TCCAccessRequestIndirect: kTCCCodeIdentityExecutableURL is <private>
+2026-11-11 04:10:35.003 Db Finder[14492:214420] [com.apple.TCC:access] TCCAccessRequestIndirect: kTCCCodeIdentityTeamID is <private>
+2026-11-11 04:10:35.003 Db Finder[14492:214420] [com.apple.TCC:access] TCCAccessRequestIndirect: kTCCCodeIdentityPromptPolicy is 2
+2026-11-11 04:10:35.003 Db Finder[14492:214420] [com.apple.TCC:access] TCCAccessRequestIndirect: kTCCCodeIdentitySDKVersion is 1705216
+2026-11-11 04:10:35.003 Db Finder[14492:214420] [com.apple.TCC:access] TCCAccessRequestIndirect: kTCCCodeIdentityPlatformType is 1
+2026-11-11 04:10:35.003 Df Finder[14492:213abf] [com.apple.TCC:access] TCCAccessRequestIndirect_block_invoke: setting up keys
+2026-11-11 04:10:35.003 Df Finder[14492:213abf] [com.apple.TCC:access] TCCAccessRequestIndirect_block_invoke: vproc_swap_string
+2026-11-11 04:10:35.003 Df Finder[14492:213abf] [com.apple.TCC:access] TCCAccessRequestIndirect_block_invoke: preparing xpc message
+2026-11-11 04:10:35.003 Df Finder[14492:213abf] [com.apple.TCC:access] TCCAccessRequestIndirect_block_invoke: requesting access
+2026-11-11 04:10:35.003 I  Finder[14492:213abf] [com.apple.TCC:access] SEND: 0/4 asynchronous to com.apple.tccd: request: msgID=14492.6, function=TCCAccessRequestIndirect, service=kTCCServiceAppleEvents, target_token={pid:88302, auid:501, euid:501}, indirect_object_token={pid:14492, auid:501, euid:501},
+2026-11-11 04:10:35.003 Df tccd[14004:216dc1] [com.apple.TCC:access] REQUEST: tccd_uid=501, sender_pid=14492, sender_uid=501, sender_auid=501, function=TCCAccessRequestIndirect, msgID=14492.6
+2026-11-11 04:10:35.003 I  tccd[14004:216dc1] [com.apple.TCC:access] REQUEST_MSG: msgID=14492.6, msg={
+	target_prompt=2 (0x2)
+	target_csflags=536937217 (0x20010301)
+	require_purpose=true
+	target_platform_type=1 (0x1)
+	target_team_id="Q6L2SF6YDW"
+	service="kTCCServiceAppleEvents"
+	indirect_object_token={pid:14492, auid:501, euid:501}
+	target_sdk_version=1705216 (0x1a0500)
+	target_identifier_type=0 (0x0)
+	target_identifier="com.anthropic.claude-code"
+	function="TCCAccessRequestIndirect"
+	preflight=false
+	timeout=0 (0x0)
+	target_path="file:///Users/user/Library/Application%20Support/Claude/claude-code/2.1.321/ddbdf2b334e1/claude.app/Contents/MacOS/claude"
+	target_csreq={identifier "com.anthropic.claude-code" and anchor apple generic and certificate 1[field.1.2.840.113635.100.6.2.6] /* exists */ and certificate leaf[field.1.2.840.113635.100.6.1.13] /* exists */ and certificate leaf[subject.OU] = Q6L2SF6YDW}
+	target_token={pid:88302, auid:501, euid:501}
+	TCCD_MSG_ID="14492.6"
+	background_session=false
+}
+2026-11-11 04:10:35.003 I  tccd[14004:216dc1] [com.apple.TCC:access] do_TCCAccessRequestIndirect: processing incoming request
+2026-11-11 04:10:35.003 Db tccd[14004:216dc1] [com.apple.TCC:access] do_TCCAccessRequestIndirect: got valid target_token
+2026-11-11 04:10:35.003 I  tccd[14004:216dc1] [com.apple.TCC:access] do_TCCAccessRequestIndirect: target information processed
+2026-11-11 04:10:35.003 I  tccd[14004:216dc1] [com.apple.TCC:access] do_TCCAccessRequestIndirect: looking up indirect object by audit token
+2026-11-11 04:10:35.003 I  tccd[14004:216dc1] [com.apple.TCC:access] do_TCCAccessRequestIndirect: generating designated requirement for pid_indirect 14492
+2026-11-11 04:10:35.003 I  tccd[14004:216dc1] [com.apple.TCC:access] AttributionChain: accessing={TCCDProcess: identifier=com.apple.finder, pid=14492, auid=501, euid=501, binary_path=/System/Library/CoreServices/Finder.app/Contents/MacOS/Finder}, requesting={TCCDProcess: identifier=com.apple.finder, pid=14492, auid=501, euid=501, binary_path=/System/Library/CoreServices/Finder.app/Contents/MacOS/Finder},
+2026-11-11 04:10:35.004 Db tccd[14004:216dc1] [com.apple.TCC:access] IDENTITY_ATTRIBUTION: starting for: /System/Library/CoreServices/Finder.app/Contents/MacOS/Finder
+2026-11-11 04:10:35.004 I  tccd[14004:216dc1] [com.apple.TCC:access] IDENTITY_ATTRIBUTION: /System/Library/CoreServices/Finder.app/Contents/MacOS/Finder[14492]: from cache: = com.apple.finder, type 0 (765/1300)
+2026-11-11 04:10:35.005 Df tccd[14004:216dc1] [com.apple.TCC:access] -[TCCDAccessIdentity staticCode]: static code for: identifier com.apple.finder, type: 0: 0x78fedc8300 at /System/Library/CoreServices/Finder.app
+2026-11-11 04:10:35.009 Db tccd[14004:216dc1] [com.apple.TCC:access] -[TCCDAccessIdentity designatedRequirementData]: DR for identifier com.apple.finder with static code 0x78fedc8300: identifier "com.apple.finder" and anchor apple
+2026-11-11 04:10:35.009 I  tccd[14004:216dc1] [com.apple.TCC:access] /System/Library/CoreServices/Finder.app/Contents/MacOS/Finder (offset 13221888) linked against SDK version 0x1b0200, platform: 1
+2026-11-11 04:10:35.012 I  tccd[14004:216dc1] [com.apple.TCC:access] -[TCCDAccessIdentity matchesCodeRequirement:]: SecStaticCodeCheckValidity() static code (0x78fedc8300) from com.apple.finder : anchor apple; status: 0
+2026-11-11 04:10:35.012 I  tccd[14004:216dc1] [com.apple.TCC:access] For com.apple.finder: matches platform requirements: Yes
+2026-11-11 04:10:35.012 Df tccd[14004:216dc1] [com.apple.TCC:access] Platform binary prompting is 'Deny' because: is Platform Binary
+2026-11-11 04:10:35.012 I  tccd[14004:216dc1] [com.apple.TCC:access] -[TCCDPlatformMacOS promptingPolicyForIdentity:accessingService:withAttributionChain:]: promptPolicy = 3; isApplePlatformBinary = 1
+2026-11-11 04:10:35.012 I  tccd[14004:216dc1] [com.apple.TCC:access] <TCCDProcess: identifier=com.apple.finder, pid=14492> has the com.apple.private.tcc.allow entitlement for service kTCCServiceAppleEvents (composed to parent: (null))
+2026-11-11 04:10:35.013 I  tccd[14004:216dc1] [com.apple.TCC:access] Derived team id of (null) for TCCDProcess: identifier=com.apple.finder, pid=14492, auid=501, euid=501, binary_path=/System/Library/CoreServices/Finder.app/Contents/MacOS/Finder
+2026-11-11 04:10:35.013 Db tccd[14004:216dc1] [com.apple.TCC:access] DR Identity for accessing={TCCDProcess: identifier=com.apple.finder, pid=14492, auid=501, euid=501, binary_path=/System/Library/CoreServices/Finder.app/Contents/MacOS/Finder}, requesting={TCCDProcess: identifier=com.apple.finder, pid=14492, auid=501, euid=501, binary_path=/System/Library/CoreServices/Finder.app/Contents/MacOS/Finder}, : {
+    kTCCCodeIdentityAuditToken = {length = 32, bytes = 0xf5010000 f5010000 14000000 f5010000 ... 09880100 96a70000 };
+    kTCCCodeIdentityAuthority = kTCCCodeIdentityDesignatedRequirementAuthority;
+    kTCCCodeIdentityCSFlags = 637631233;
+    kTCCCodeIdentityCanSendToAnyTarget = 1;
+    kTCCCodeIdentityDesignatedRequirementData = {length = 44, bytes = 0xfade0c00 0000002c 00000001 00000006 ... 6e646572 00000003 };
+    kTCCCodeIdentityExecutableURL = "file:///System/Library/CoreServices/Finder.app/Contents/MacOS/Finder";
+    kTCCCodeIdentityIdentifier = "com.apple.finder";
+    kTCCCodeIdentityIdentifierType = 0;
+    kTCCCodeIdentityPlatformType = 1;
+    kTCCCodeIdentityPromptPoli
+2026-11-11 04:10:35.013 I  tccd[14004:216dc1] [com.apple.TCC:access] do_TCCAccessRequestIndirect: indirect object information processed
+2026-11-11 04:10:35.014 Df tccd[14004:216dc1] [com.apple.TCC:access] target_executable_path_URL: file:///Users/user/Library/Application%20Support/Claude/claude-code/2.1.321/ddbdf2b334e1/claude.app/Contents/MacOS/claude
+2026-11-11 04:10:35.014 I  tccd[14004:216dc1] [com.apple.TCC:access] AttributionChain: accessing={TCCDProcess: identifier=com.apple.finder, pid=14492, auid=501, euid=501, binary_path=/System/Library/CoreServices/Finder.app/Contents/MacOS/Finder}, requesting={TCCDProcess: identifier=com.apple.finder, pid=14492, auid=501, euid=501, binary_path=/System/Library/CoreServices/Finder.app/Contents/MacOS/Finder},
+2026-11-11 04:10:35.015 Db tccd[14004:216dc1] [com.apple.TCC:access] Identified provisional outer-most app bundle for <private> as <private>
+2026-11-11 04:10:35.015 I  tccd[14004:216dc1] [com.apple.TCC:access] -[TCCDAccessIdentity initWithIdentifier:type:executableURL:SDKVersion:platformType:]: self.bundle=0x78ff1ec090, bundle:<TCCDBundle: bundleID=com.anthropic.claude-code, version=2.1.321, path=/Users/user/Library/Application Support/Claude/claude-code/2.1.321/ddbdf2b334e1/claude.app>; for: com.anthropic.claude-code, URL: file:///Users/user/Library/Application%20Support/Claude/claude-code/2.1.321/ddbdf2b334e1/claude.app/Contents/MacOS/claude, /Users/user/Library/Application Support/Claude/claude-code/2.1.321/ddbdf2b334e1/claude.app/Contents/MacOS/claude
+2026-11-11 04:10:35.015 I  tccd[14004:216dc1] [com.apple.TCC:access] do_TCCAccessRequestIndirect: checking access against database
+2026-11-11 04:10:35.015 I  tccd[14004:216dc1] [com.apple.TCC:access] do_TCCAccessRequestIndirect_block_invoke: target Requirements match for <private> : com.apple.finder
+2026-11-11 04:10:35.015 I  tccd[14004:216dc1] [com.apple.TCC:access] do_TCCAccessRequestIndirect_block_invoke: indirect object Requirements match for <private> : com.apple.finder
+2026-11-11 04:10:35.015 I  tccd[14004:216dc1] [com.apple.TCC:access] Handling access request: kTCCServiceAppleEvents:<private>:com.apple.finder, default_allow: 0, authValue: 2,
+2026-11-11 04:10:35.015 I  tccd[14004:216dc1] [com.apple.TCC:access] REPLY_MSG: msg={
+	result=true
+}
+2026-11-11 04:10:35.015 Df tccd[14004:216dc1] [com.apple.TCC:access] REPLY: (501) function=TCCAccessRequestIndirect, msgID=14492.6
+2026-11-11 04:10:35.015 I  Finder[14492:2163e5] [com.apple.TCC:access] RECV: asynchronous reply <dictionary: 0x7c375b3300> { count = 1, transaction: 0, voucher = 0x7c3b8266c0, contents =
+	"result" => <bool: 0x1f9bcda60>: true
+}
+2026-11-11 04:10:35.015 Df Finder[14492:2163e5] [com.apple.TCC:access] TCCAccessRequestIndirect_block_invoke: access request result was 1, timeout was 0
