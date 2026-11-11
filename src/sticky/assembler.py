@@ -28,7 +28,7 @@ from __future__ import annotations
 
 from collections import Counter, deque
 from dataclasses import dataclass, field
-from typing import Iterable, Iterator
+from typing import Callable, Iterable, Iterator
 
 from . import rules
 from .logsource import LogRecord
@@ -92,6 +92,7 @@ class Event:
     _bundle_id: str | None = field(default=None, repr=False)
     _drs: dict = field(default_factory=dict, repr=False)
     _identity_types: dict = field(default_factory=dict, repr=False)
+    _row_id: int | None = field(default=None, repr=False)  # set by a store
 
     # -- Derived ------------------------------------------------------------
     @property
@@ -149,12 +150,21 @@ class Event:
 
 
 class Assembler:
-    """Feed ``LogRecord``s in log order; collect completed ``Event``s."""
+    """Feed ``LogRecord``s in log order; collect completed ``Event``s.
 
-    def __init__(self) -> None:
+    ``on_client_result`` is called with an already-returned ``Event`` when the
+    target app's result line arrives afterwards, so a recorder can update the
+    stored row.
+    """
+
+    # Requests per sender that may still be waiting for a client result line.
+    MAX_AWAITING_PER_SENDER = 32
+
+    def __init__(self, on_client_result: Callable[[Event], None] | None = None) -> None:
         self._open: dict[tuple[int, int], Event] = {}
         self._awaiting_result: dict[int, deque[Event]] = {}
         self._tccd_pids: set[int] = set()
+        self._on_client_result = on_client_result
         self.stats: Counter[str] = Counter()
         self.unrecognised: Counter[str] = Counter()
 
@@ -192,7 +202,9 @@ class Assembler:
             self._open[key] = ev
             self.stats["requests"] += 1
             if ev.function.startswith("TCCAccessRequestIndirect"):
-                self._awaiting_result.setdefault(ev.sender_pid, deque()).append(ev)
+                self._awaiting_result.setdefault(
+                    ev.sender_pid, deque(maxlen=self.MAX_AWAITING_PER_SENDER)
+                ).append(ev)
             return done
 
         ev = self._open.get(key)
@@ -225,6 +237,28 @@ class Assembler:
             ev = self._open.pop(key)
             ev.ended_by = "end_of_log"
             done.append(self._finish(ev))
+        self._awaiting_result.clear()
+        return done
+
+    def expire(self, older_than: str) -> list[Event]:
+        """Close requests that started before ``older_than`` and are still open.
+
+        A long-running recorder calls this now and then, so a request whose
+        REPLY was never logged (and whose thread is never reused) can't stay
+        in memory forever. Pick a cutoff longer than a user might leave a
+        permission prompt unanswered.
+        """
+        done = []
+        for key, ev in list(self._open.items()):
+            if ev.ts_start < older_than:
+                self.stats["expired"] += 1
+                ev.ended_by = "timeout"
+                done.append(self._finish(self._open.pop(key)))
+        for pid, queue in list(self._awaiting_result.items()):
+            while queue and queue[0].ts_start < older_than:
+                queue.popleft()
+            if not queue:
+                del self._awaiting_result[pid]
         return done
 
     # Internals --------------------------------------------------------------
@@ -242,6 +276,9 @@ class Assembler:
             if ev.client_result is None:
                 ev.client_result = int(m["result"])
                 self.stats["client_results_linked"] += 1
+                # ended_by is set once the event has been returned to the caller.
+                if ev.ended_by is not None and self._on_client_result is not None:
+                    self._on_client_result(ev)
                 return
         self.stats["client_results_unlinked"] += 1
 

@@ -4,9 +4,33 @@
 
 On macOS 27, apps (especially developer tools) keep asking again for permissions you already granted. Sticky records the reasoning macOS writes to its own log every time it decides a permission request: which app asked, which app it blamed, whether the saved grant still matched, and what you answered. Then it explains what went wrong in plain English.
 
-> Status: early development (week 1 of the [MVP plan](sticky-design.md)). The log parser works; the background recorder and `sticky why` are next.
+> Status: early development (week 2 of the [MVP plan](sticky-design.md)). The parser and the background recorder work; `sticky why` is next.
 
 ## What works today
+
+Record permission decisions in the background (a per-user LaunchAgent: no sudo, no Full Disk Access), then look at the timeline:
+
+```bash
+sticky install-agent
+```
+
+```text
+$ sticky log --since 1h --service AppleEvents
+time                scope  service              client                       target               outcome
+11-11 04:59:35      user   AppleEvents          com.anthropic.claude-code    com.apple.finder     allowed
+11-11 04:59:55      user   AppleEvents          com.anthropic.claude-code    com.apple.Safari     DENIED
+```
+
+| Command | What it does |
+|---|---|
+| `sticky install-agent` | Record in the background from login (`--dry-run` prints the plist and changes nothing) |
+| `sticky uninstall-agent` | Stop recording and remove the agent; recorded data is kept |
+| `sticky record` | Record in the foreground (Ctrl+C to stop) |
+| `sticky status` | Is the recorder running? When did it last see a log line? |
+| `sticky log` | Timeline of decisions: `--since 2h`, `--client`, `--service`, `--outcome denied`, `--json` |
+| `sticky parse FILE` | Decisions in a saved log file (development) |
+
+Data stays on your Mac in `~/Library/Application Support/Sticky/sticky.db` and is kept for 30 days. The recorder uses about 0.03 % of one CPU core and about 20 MB of memory.
 
 `sticky parse` reads a saved permissions log and lists every decision:
 
@@ -42,6 +66,9 @@ PYTHONPATH=src python3 -m unittest discover -s tests -v
 | `src/sticky/logsource.py` | Reads `log stream` output (ndjson or compact) into uniform records |
 | `src/sticky/rules.py` | Patterns for the permissions-service log lines, verified on macOS 27.2.1 |
 | `src/sticky/assembler.py` | Groups each request's lines (by tccd thread, REQUEST → REPLY) into one `Event` |
+| `src/sticky/store.py` | SQLite storage: events, recorder runs, unrecognised line templates |
+| `src/sticky/recorder.py` | Runs `log stream`, stores decisions, restarts with backoff, heartbeat |
+| `src/sticky/agent.py` | Installs the recorder as a LaunchAgent |
 | `src/sticky/cli.py` | The `sticky` command |
 | `tests/fixtures/` | Real logs recorded on macOS 27.2.1, with the username replaced by `user` |
 | `sticky-design.md` | Architecture, diagnosis rules and milestones |

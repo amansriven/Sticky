@@ -248,6 +248,15 @@ This verifies the core diagnosis on your own Mac, and it makes a good demo GIF.
 4. **Recording for 24 h:** CPU and memory use, and whether recording survives sleep and wake.
 5. **The `reminder_count` and `one_time_reprompt_eligible` columns** in the system database: what do they track?
 6. **Is `--debug` needed for everything?** The answer and the signing requirement are only logged at debug level. Measure how much extra volume that costs.
+7. **Composed authorization (found in week 2).** tccd logs `Evaluated composed authorization from kTCCServiceListenEvent to parent service kTCCServicePostEvent: Auth:Unknown (None)`, and PostEvent in turn checks Accessibility. A permission can be granted through its parent, so `sticky why` could say "allowed because Accessibility is on." Parse this in week 3.
+
+### Week 2 results (2026-11-11, macOS 27.2.1)
+
+- `log stream` doesn't hold output back when writing into a pipe. Lines reach the recorder about 0.16 s after the event.
+- A 3-minute live run captured a Finder request (allowed) and a Safari request (remembered denial). It recorded 553 log lines, 19 requests and 14 decisions.
+- CPU averaged over the run: recorder 0.01 %, `log stream` 0.02 % of one core. Memory: recorder 18 MB steady (32 MB at startup), `log stream` 2.6 MB. Both are within budget.
+- SIGTERM stops the recorder cleanly, and `log stream` stops with it.
+- **Still to do:** run it for 24 h as a LaunchAgent, including sleep and wake.
 
 ---
 
