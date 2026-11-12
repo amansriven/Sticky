@@ -36,5 +36,7 @@ class Sticky < Formula
     (testpath/"empty.ndjson").write ""
     assert_match "0 requests", shell_output("#{bin}/sticky parse #{testpath}/empty.ndjson 2>&1")
     assert_match "apple", shell_output("#{bin}/sticky inspect /System/Applications/TextEdit.app")
+    ENV["STICKY_DB"] = testpath/"sticky.db"
+    assert_match '"problems": []', shell_output("#{bin}/sticky report --since all")
   end
 end

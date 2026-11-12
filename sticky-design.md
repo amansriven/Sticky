@@ -347,3 +347,57 @@ noteUseOfItemWithIdentifier: identifier=2.com.anthropic.claudefordesktop, uid=50
 3. How much does the 24 h log history cover for B1 if the collector wasn't running?
 
 Plan: start this after the permissions MVP ships (week 8+), so Sticky grows one module at a time.
+
+---
+
+## 10. Menu bar app (week 5, started 2026-11-11)
+
+**Architecture.** The SwiftUI app (`app/`) doesn't re-implement the diagnosis. Every 60 seconds it runs `sticky report --compact`, which takes about 0.2 s, and shows the JSON. The Python engine stays the single source of truth.
+- `StickyCore` holds the models, the bridge that runs `sticky`, and notification planning, with 13 Swift Testing tests. It decodes a real report generated from the anonymized fixture.
+- `StickyBar` is the UI.
+- It builds with the command-line tools alone (`app/build.sh`), ad-hoc signed for local use.
+
+**Notifications.** Each problem has a stable key: rule, app, permission, and when the problem began. It's announced once, at most three per refresh, plus a summary for the rest. Nothing is announced on first launch. Clicking a notification opens the relevant System Settings page. If notifications are off, the menu says so and links to the setting.
+
+**End-to-end result.** BrokenTool was rebuilt as ax3 at 09:54:14, and its Accessibility check was denied silently (R6). The app picked it up at 09:54:25, and the notification appeared. That's **11 seconds** from the silent failure to the alert.
+
+**Real data exposed false positives.** The first `sticky report` on 30 days of real data listed 37 problems. Nearly all were Apple background services refused Full Disk Access or Contacts, which is just the default. The fixes:
+- R2 ("refused silently") applies only to **ask-first** permissions (Automation, Camera, Microphone, Contacts, folders…) or after a real "Don't Allow".
+- For default-off permissions (Full Disk Access, Accessibility…), a refusal is a problem only if the app had the permission before: new rule **R7**.
+- Apple **platform binaries** are skipped. tccd logs `For <id>: matches platform requirements: Yes`, and they can never prompt.
+- R1c no longer mistakes an Automation request's target (Finder) for the tool that asked.
+- After these fixes: 0 problems on the real data, 1 correct info finding.
+
+**Gotchas:**
+- In the macOS 27 SDK, SwiftUI's `@State` is a macro whose compiler plugin ships only with Xcode. The app keeps that state in its model instead.
+- Apps get a minimal `PATH`, where `python3` is the system's 3.9.6, too old for Sticky. `scripts/sticky-dev` prefers Homebrew's Python.
+- Homebrew's `sticky` 0.1.1 has no `report` command. The app detects that and says "brew upgrade sticky".
+
+**Next:**
+- Release 0.2.0 so the Homebrew `sticky` has `report`.
+- Launch at login (`SMAppService`).
+- A Developer ID-signed, notarized build for distribution, through a Homebrew cask.
+- A per-app timeline view.
+
+## 11. 24-hour run (2026-11-11 08:30 → 2026-11-12 12:12, macOS 27.2.1)
+
+The recorder was the Homebrew 0.1.1 install, run as a LaunchAgent (run #9).
+
+| Measure | Result |
+|---|---|
+| Uptime | **27 h 42 min**, one continuous run |
+| `log stream` restarts | **0** |
+| Sleep/wake | **10+ full sleep/wake cycles and 273 dark wakes**; recording resumed **0–5 s** after each wake |
+| Longest gap between decisions | 39 min, overnight while asleep |
+| Volume | 838,833 log lines → 78,638 requests → 18,038 decisions stored |
+| CPU, averaged | recorder **0.033 %**, `log stream` **0.043 %** of one core |
+| Memory | recorder **14 MB**, `log stream` **2.2 MB** |
+| Database | **7.2 MB** after about 31 h, which would be about 170 MB over 30 days |
+
+Week 2's open item ("run it for 24 h as a LaunchAgent, including sleep and wake") is done.
+
+**Finding: 88 % of the stored rows were noise.** Most were a second entitlement shortcut, `Granting TCCDProcess: identifier=… access to kTCCService… via entitlement 'com.apple.private.tcc.allow'`: Apple daemons using built-in permissions, stored with no app attached. That line is now parsed (flagged entitled and attributed to the granted app). The recorder stores only decisions it can diagnose: not entitlement shortcuts, and not decisions with no app. `--store-all` keeps everything for debugging. A one-time cleanup at recorder start removes the old rows and compacts the file.
+
+On a copy of the real database: 19,694 → 2,444 rows and 7.2 MB → 1.3 MB, with the same findings before and after.
+
+**A real finding from the run:** Pluely (`com.srikanthnani.pluely`, a third-party app) was refused the Microphone without a prompt. That's a saved "Don't Allow", probably from before Sticky was recording.

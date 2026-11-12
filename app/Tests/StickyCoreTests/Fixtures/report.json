@@ -1,0 +1,140 @@
+{
+ "sticky_version": "0.1.1",
+ "generated_at": "2026-11-11 09:49:28.218",
+ "since": null,
+ "recorder": {
+  "agent_installed": true,
+  "agent_loaded": true,
+  "decisions_total": 8,
+  "state": "stopped",
+  "stopped_reason": "log stream exited (0); restart limit reached",
+  "pid": 35689,
+  "run_id": 1,
+  "started_at": "2026-11-11 09:49:28.212",
+  "heartbeat": "2026-11-11 09:49:28.218",
+  "last_record": "2026-11-11 04:40:25.430",
+  "records": 330,
+  "requests": 10,
+  "decisions": 8,
+  "restarts": 0
+ },
+ "problems": [
+  {
+   "rule": "R2",
+   "severity": "problem",
+   "client_id": "com.anthropic.claude-code",
+   "service": "kTCCServiceAppleEvents",
+   "target": "com.apple.Safari",
+   "title": "Denied: requests are refused silently",
+   "detail": [
+    "It was denied before Sticky started recording.",
+    "macOS won't ask again: 1 request since was refused without a prompt."
+   ],
+   "fix": [
+    "Turn it on in System Settings \u2192 Privacy & Security \u2192 Automation: open \"x-apple.systempreferences:com.apple.preference.security?Privacy_Automation\"",
+    "Or make macOS ask again: tccutil reset AppleEvents com.anthropic.claude-code (resets this app's Automation for every target)"
+   ],
+   "when": "2026-11-11 04:40:25.412",
+   "began": "2026-11-11 04:40:25.412",
+   "actions": [
+    {
+     "kind": "open_url",
+     "label": "Open Automation settings",
+     "value": "x-apple.systempreferences:com.apple.preference.security?Privacy_Automation"
+    },
+    {
+     "kind": "copy",
+     "label": "Copy reset command",
+     "value": "tccutil reset AppleEvents com.anthropic.claude-code"
+    }
+   ],
+   "key": "R2|com.anthropic.claude-code|kTCCServiceAppleEvents|com.apple.Safari|2026-11-11 04:40:25.412",
+   "app_name": "claude",
+   "app_path": "/Users/user/Library/Application Support/Claude/claude-code/2.1.321/ddbdf2b334e1/claude.app",
+   "service_name": "Automation",
+   "label": "Automation \u2192 com.apple.Safari"
+  }
+ ],
+ "apps": [
+  {
+   "client_id": "com.anthropic.claude-code",
+   "app_name": "claude",
+   "app_path": "/Users/user/Library/Application Support/Claude/claude-code/2.1.321/ddbdf2b334e1/claude.app",
+   "last_seen": "2026-11-11 04:40:25.412",
+   "permissions": [
+    {
+     "service": "kTCCServiceAppleEvents",
+     "service_name": "Automation",
+     "target": "com.apple.Safari",
+     "label": "Automation \u2192 com.apple.Safari",
+     "requests": 1,
+     "last_seen": "2026-11-11 04:40:25.412",
+     "last_outcome": "denied",
+     "status": "problem",
+     "findings": [
+      {
+       "rule": "R2",
+       "severity": "problem",
+       "client_id": "com.anthropic.claude-code",
+       "service": "kTCCServiceAppleEvents",
+       "target": "com.apple.Safari",
+       "title": "Denied: requests are refused silently",
+       "detail": [
+        "It was denied before Sticky started recording.",
+        "macOS won't ask again: 1 request since was refused without a prompt."
+       ],
+       "fix": [
+        "Turn it on in System Settings \u2192 Privacy & Security \u2192 Automation: open \"x-apple.systempreferences:com.apple.preference.security?Privacy_Automation\"",
+        "Or make macOS ask again: tccutil reset AppleEvents com.anthropic.claude-code (resets this app's Automation for every target)"
+       ],
+       "when": "2026-11-11 04:40:25.412",
+       "began": "2026-11-11 04:40:25.412",
+       "actions": [
+        {
+         "kind": "open_url",
+         "label": "Open Automation settings",
+         "value": "x-apple.systempreferences:com.apple.preference.security?Privacy_Automation"
+        },
+        {
+         "kind": "copy",
+         "label": "Copy reset command",
+         "value": "tccutil reset AppleEvents com.anthropic.claude-code"
+        }
+       ],
+       "key": "R2|com.anthropic.claude-code|kTCCServiceAppleEvents|com.apple.Safari|2026-11-11 04:40:25.412"
+      }
+     ]
+    },
+    {
+     "service": "kTCCServiceAppleEvents",
+     "service_name": "Automation",
+     "target": "com.apple.finder",
+     "label": "Automation \u2192 com.apple.finder",
+     "requests": 1,
+     "last_seen": "2026-11-11 04:40:21.269",
+     "last_outcome": "allowed",
+     "status": "ok",
+     "findings": [
+      {
+       "rule": "OK",
+       "severity": "ok",
+       "client_id": "com.anthropic.claude-code",
+       "service": "kTCCServiceAppleEvents",
+       "target": "com.apple.finder",
+       "title": "Allowed",
+       "detail": [
+        "1 of 1 recorded request allowed; the saved approval matched the app on 1."
+       ],
+       "fix": [],
+       "when": "2026-11-11 04:40:21.269",
+       "began": null,
+       "actions": [],
+       "key": "OK|com.anthropic.claude-code|kTCCServiceAppleEvents|com.apple.finder|2026-11-11 04:40:21.269"
+      }
+     ]
+    }
+   ],
+   "status": "problem"
+  }
+ ]
+}

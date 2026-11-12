@@ -44,6 +44,7 @@ Sticky can only explain requests made while it's recording, so install the agent
 | `sticky inspect PATH\|BUNDLE-ID` | Show an app's signing identity and whether its permissions will survive updates |
 | `sticky log` | Timeline of decisions: `--since 2h`, `--client`, `--service`, `--outcome denied`, `--json` |
 | `sticky status` | Is the recorder running? When did it last see a log line? |
+| `sticky report --json` | Recorder health and every finding as JSON (what the menu bar app reads) |
 | `sticky install-agent` | Record in the background from login (`--dry-run` prints the LaunchAgent and changes nothing) |
 | `sticky uninstall-agent` | Stop recording and remove the agent; recorded data is kept |
 | `sticky record` | Record in the foreground (Ctrl+C to stop) |
@@ -57,10 +58,29 @@ Sticky can only explain requests made while it's recording, so install the agent
 | **Asked again: the app moved** | The app is identified by its location, and it moved |
 | **Asked again: macOS blamed a different app** | Permissions belong to the app macOS holds responsible (often your terminal), not the tool you ran |
 | **Asked again: the saved answer was removed** | Same app, same place, but the approval disappeared: `tccutil`, System Settings, or a management profile |
-| **Denied: refused silently** | You chose "Don't Allow" earlier, so macOS won't ask again |
+| **Denied: refused silently** | A permission macOS normally asks about was refused without asking, because a "Don't Allow" is saved |
+| **Lost a permission it had** | A permission that's off by default (Full Disk Access, Accessibility…) was allowed before and is denied now |
 | **Kept its permission after a rebuild** | Informational: macOS carried an approval over to a new build (seen with Automation) |
 
 Each finding names the System Settings page to open, or the `tccutil` command that resets just that app.
+
+Sticky doesn't flag refusals that are simply the default: permissions like Full Disk Access that were never switched on, or Apple's own background services, which macOS never lets ask.
+
+## Menu bar app (preview)
+
+`app/` holds a SwiftUI menu bar app. It shows recording status and current problems with one-click fixes, and notifies you when a new problem appears. For example, about 10 seconds after an app silently loses Accessibility, you get "BrokenTool: Switched on, but not for this build".
+
+It runs `sticky report` (Sticky 0.2.0 or later), so all the diagnosis logic stays in one place. For now, build it from this repository; it needs only the Xcode command-line tools:
+
+```bash
+app/build.sh
+```
+
+```bash
+open app/build/Sticky.app
+```
+
+It finds `sticky` in Homebrew's usual locations. To use a source checkout instead, run `open --env STICKY_BIN="$PWD/scripts/sticky-dev" app/build/Sticky.app`. The build is ad-hoc signed for local use; a signed download is planned.
 
 ## Privacy and resource use
 
@@ -115,8 +135,11 @@ Use the full path, `/usr/bin/log`: in zsh, plain `log` is a built-in command. Pr
 | `src/sticky/recorder.py` | Runs `log stream`, stores decisions, restarts with backoff, heartbeat |
 | `src/sticky/agent.py` | Installs the recorder as a LaunchAgent |
 | `src/sticky/identity.py` | Reads an app's signing identity with `codesign` |
-| `src/sticky/diagnose.py` | Diagnosis rules R1–R6 |
+| `src/sticky/diagnose.py` | Diagnosis rules R1–R7 |
+| `src/sticky/report.py` | `sticky report`: health and findings as JSON for the app |
 | `src/sticky/cli.py` | The `sticky` command |
+| `app/` | The SwiftUI menu bar app (`StickyCore`: models, CLI bridge, notification planning; `StickyBar`: UI). Test with `cd app && swift test` |
+| `scripts/sticky-dev` | Runs `sticky` from this checkout (for the app, or without installing) |
 | `tools/brokentool/` | A deliberately fragile ad-hoc signed app for testing (`build.sh [tag]`, then `run.sh` for Automation or `run.sh ax` for Accessibility) |
 | `tests/fixtures/` | Real logs recorded on macOS 27.2.1, anonymized |
 | `packaging/homebrew/sticky.rb` | The Homebrew formula (published copy lives in `amansriven/homebrew-tap`) |

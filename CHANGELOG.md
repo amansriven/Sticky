@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.2.0
+
+- **Menu bar app (preview):** a SwiftUI app in `app/` that shows recording status and current problems with fix buttons, and notifies you about new problems: each one once, at most three at a time, and none on first launch. Built with the command-line tools; ad-hoc signed for local use.
+- **`sticky report --json`:** recorder health and every finding in one document, with a stable key per problem and structured fix actions.
+- **Fewer false alarms:** refusals that are just the default are no longer reported. That covers permissions such as Full Disk Access that were never switched on, and Apple platform binaries, which can never prompt. "Refused silently" now applies only to permissions macOS normally asks about, or after you clicked "Don't Allow".
+- **New finding: "Lost a permission it had"** for default-off permissions that were allowed before and are denied now.
+- **Much smaller database:** entitlement shortcuts (`Granting … via entitlement`) are now recognised, and only decisions Sticky can diagnose are stored. On a real 24-hour run that's 88 % fewer rows (7.2 MB → 1.3 MB). Old rows are cleaned up once, when the recorder starts.
+- **Fix:** "macOS blamed a different app" no longer mistakes the target of an Automation request (such as Finder) for the tool that asked.
+
 ## 0.1.1
 
 - **Fix:** running `sticky install-agent` again (for example after `brew upgrade`) could fail with `Bootstrap failed: 5: Input/output error` and leave no recorder running. Sticky now waits for launchd to finish unloading the old agent, and retries starting the new one. If it still can't, the error shows the `launchctl` command to run by hand.
