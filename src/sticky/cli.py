@@ -9,6 +9,7 @@ Commands:
   sticky log               timeline of recorded permission decisions
   sticky why APP           explain why an app keeps being asked, or is refused
   sticky inspect PATH|ID   an app's signing identity: will grants stick?
+  sticky report --json     health and findings as JSON (used by the menu bar app)
 """
 
 from __future__ import annotations
@@ -140,18 +141,6 @@ def _show_log(args: argparse.Namespace, store: Store, since: str | None) -> int:
     return 0
 
 
-def _pid_alive(pid: int | None) -> bool:
-    if not pid:
-        return False
-    try:
-        os.kill(pid, 0)
-    except ProcessLookupError:
-        return False
-    except PermissionError:
-        return True
-    return True
-
-
 def _age(ts: str | None) -> str:
     if not ts:
         return "never"
@@ -170,40 +159,43 @@ def _age(ts: str | None) -> str:
 
 
 def cmd_status(args: argparse.Namespace) -> int:
+    from .report import recorder_health
+
     installed = agent.is_installed()
     loaded = agent.is_loaded() if installed else False
     print(f"Background agent: {'installed' if installed else 'not installed'}"
           + (", loaded in launchd" if loaded else (", NOT loaded" if installed else "")))
+    with _open_store(args) as store:
+        h = recorder_health(store, installed, loaded)
+        print(f"Database:         {store.path} ({h['decisions_total']} decisions)")
+        if h["state"] == "never":
+            print("Recorder:         has never run")
+            return 1
+        state = {
+            "running": "running",
+            "stale": "running, but no heartbeat for over 3 minutes",
+            "stopped": "stopped" if h["stopped_reason"] == "stopped"
+                       else f"stopped: {h['stopped_reason']}",
+        }[h["state"]]
+        print(f"Recorder:         {state}, pid {h['pid']}, run #{h['run_id']} since {h['started_at'][:19]}")
+        print(f"Last log line:    {_age(h['last_record'])}; heartbeat {_age(h['heartbeat'])}")
+        print(f"This run:         {h['records']} log lines, {h['requests']} requests, "
+              f"{h['decisions']} decisions stored, {h['restarts']} restarts of log stream")
+        unknown = store.top_unrecognised()
+        if unknown:
+            print("Unrecognised log lines (most common):")
+            for row in unknown:
+                print(f"  {row['count']:>7}  {_short(row['template'].replace(chr(10), ' '), 90)}")
+        return 0 if h["state"] == "running" else 1
+
+
+def cmd_report(args: argparse.Namespace) -> int:
+    from .report import build_report
 
     with _open_store(args) as store:
-        return _show_status(store)
-
-
-def _show_status(store: Store) -> int:
-    print(f"Database:         {store.path} ({store.count_events()} decisions)")
-    run = store.latest_run()
-    if run is None:
-        print("Recorder:         has never run")
-        return 1
-    running = run["ended_at"] is None and _pid_alive(run["pid"])
-    stale = run["heartbeat"] is not None and run["heartbeat"] < ts_ago(parse_duration("3m"))
-    if running and not stale:
-        state = "running"
-    elif running:
-        state = "running, but no heartbeat for over 3 minutes"
-    else:
-        note = run["note"] or "process ended without saying why"
-        state = "stopped" if note == "stopped" else f"stopped: {note}"
-    print(f"Recorder:         {state}, pid {run['pid']}, run #{run['id']} since {run['started_at'][:19]}")
-    print(f"Last log line:    {_age(run['last_record'])}; heartbeat {_age(run['heartbeat'])}")
-    print(f"This run:         {run['records']} log lines, {run['requests']} requests, "
-          f"{run['decisions']} decisions stored, {run['restarts']} restarts of log stream")
-    unknown = store.top_unrecognised()
-    if unknown:
-        print("Unrecognised log lines (most common):")
-        for row in unknown:
-            print(f"  {row['count']:>7}  {_short(row['template'].replace(chr(10), ' '), 90)}")
-    return 0 if running and not stale else 1
+        report = build_report(store, since=args.since)
+    print(json.dumps(report, indent=None if args.compact else 2))
+    return 0
 
 
 MARKS = {"problem": "✗", "info": "!", "ok": "✓"}
@@ -381,6 +373,12 @@ def main(argv: list[str] | None = None) -> int:
     p.add_argument("target", help="path to an app or tool, or a bundle id")
     p.add_argument("--json", action="store_true")
     p.set_defaults(func=cmd_inspect)
+
+    p = sub.add_parser("report", help="recorder health and all findings as JSON (for the menu bar app)")
+    p.add_argument("--since", default="30d", help="how far back: 2h, 7d or all (default 30d)")
+    p.add_argument("--json", action="store_true", help="accepted for symmetry; output is always JSON")
+    p.add_argument("--compact", action="store_true", help="one line, no indentation")
+    p.set_defaults(func=cmd_report)
 
     p = sub.add_parser("status", help="is the recorder running and healthy?")
     p.set_defaults(func=cmd_status)

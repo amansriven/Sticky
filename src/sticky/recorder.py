@@ -44,6 +44,16 @@ PURGE_EVERY_SECONDS = 24 * 3600
 MAX_BACKOFF_SECONDS = 60
 
 
+def worth_storing(ev: Event) -> bool:
+    """Only decisions Sticky can diagnose are stored.
+
+    Skipped: requests that decided nothing; entitlement shortcuts (they can
+    never prompt or change); and decisions not attributable to any app. Over a
+    24-hour run these were about 85% of all decisions.
+    """
+    return ev.is_decision and not ev.entitled and ev.client_id is not None
+
+
 class Recorder:
     def __init__(
         self,
@@ -66,6 +76,7 @@ class Recorder:
         self._stop = threading.Event()
         self._proc: subprocess.Popen | None = None
         self.run_id: int | None = None
+        self.skipped = 0  # requests not stored: no decision, entitlement shortcuts, no app
         self.counts = {"records": 0, "requests": 0, "decisions": 0, "restarts": 0}
         self.last_record: str | None = None
 
@@ -84,7 +95,10 @@ class Recorder:
     def run(self) -> int:
         self.run_id = self.store.start_run(os.getpid())
         purged = self.store.purge()
-        self.log(f"recorder started (run {self.run_id}, db {self.store.path}, purged {purged} old events)")
+        pruned = self.store.prune_noise()
+        self.log(f"recorder started (run {self.run_id}, db {self.store.path}, purged {purged} old "
+                 f"events" + (f", removed {pruned} stored entitlement/unattributed rows" if pruned else "")
+                 + ")")
         note = "stopped"
         failures = 0
         last_purge = time.monotonic()
@@ -109,7 +123,7 @@ class Recorder:
                     last_purge = time.monotonic()
         finally:
             self._heartbeat(ended_at=now_ts(), note=note)
-            self.log(f"recorder stopped: {self.counts}")
+            self.log(f"recorder stopped: {self.counts}, not stored: {self.skipped}")
         return 0
 
     def _stream_once(self) -> int | None:
@@ -160,7 +174,8 @@ class Recorder:
     # Storage --------------------------------------------------------------------
     def _save(self, ev: Event) -> None:
         self.counts["requests"] += 1
-        if not (ev.is_decision or self.store_all):
+        if not self.store_all and not worth_storing(ev):
+            self.skipped += 1
             return
         row = self.store.insert_event(ev, self.run_id)
         if row is not None:

@@ -123,6 +123,66 @@ class RecorderTests(TempDB):
         self.assertGreater(top[0]["count"], 0)
 
 
+class NoiseTests(TempDB):
+    """Found in the first 24-hour run: about 85% of stored decisions were
+    entitlement grants to Apple daemons, mostly unattributed."""
+
+    def test_entitlement_grants_are_attributed_and_flagged(self):
+        from sticky.assembler import assemble
+        from sticky.logsource import read_records
+
+        events, _ = assemble(read_records(str(FIXTURES / "compact-prompts-allowed.log")))
+        decisions = [e for e in events if e.is_decision]
+        self.assertFalse([e for e in decisions if e.client_id is None])
+        granted = {(e.client_id, e.service) for e in decisions if e.entitled}
+        self.assertIn(("com.apple.Music", "kTCCServiceAddressBook"), granted)
+        self.assertIn(("com.apple.Music", "kTCCServiceMediaLibrary"), granted)
+
+    def test_only_diagnosable_decisions_are_stored(self):
+        from sticky.assembler import Event
+        from sticky.recorder import worth_storing
+
+        def e(**kw):
+            base = dict(tccd_pid=1, tid=1, ts_start="2026-01-01 00:00:00.000",
+                        service="kTCCServiceCamera", auth_result=2, client_id="com.x")
+            base.update(kw)
+            return Event(**base)
+
+        self.assertTrue(worth_storing(e()))
+        self.assertFalse(worth_storing(e(entitled=True)))
+        self.assertFalse(worth_storing(e(client_id=None)))
+        self.assertFalse(worth_storing(e(service=None)))  # decided nothing
+
+    def test_store_all_keeps_everything(self):
+        rec = Recorder(self.store, command=["/bin/cat", str(NDJSON)], max_restarts=0,
+                       backoff=lambda n: 0, log=QUIET, store_all=True, snapshot_identities=False)
+        rec.run()
+        self.assertEqual(self.store.count_events(), 10)
+        self.assertEqual(rec.skipped, 0)
+
+    def test_prune_noise_runs_once(self):
+        # A database written by an older version (no recorder run here yet).
+        self.store.db.execute(
+            "INSERT INTO events (ts_start, tccd_pid, tid, service, final_auth, entitled, client_id) "
+            "VALUES ('2026-01-01 00:00:00.000', 1, 1, 'kTCCServicePhotos', 2, 1, 'com.apple.x'), "
+            "('2026-01-01 00:00:00.001', 1, 1, 'kTCCServicePhotos', 2, 0, NULL), "
+            "('2026-01-01 00:00:00.002', 1, 1, 'kTCCServiceCamera', 0, 0, 'com.example.app')")
+        self.assertEqual(self.store.prune_noise(), 2)
+        self.assertEqual(self.store.count_events(), 1)
+        self.store.db.execute(
+            "INSERT INTO events (ts_start, tccd_pid, tid, entitled, client_id) "
+            "VALUES ('2026-01-01 00:00:00.003', 1, 1, 1, 'com.apple.x')")
+        self.assertEqual(self.store.prune_noise(), 0)  # only once per database
+
+    def test_recorder_start_prunes_old_noise(self):
+        self.store.db.execute(
+            "INSERT INTO events (ts_start, tccd_pid, tid, entitled, client_id) "
+            "VALUES ('2026-01-01 00:00:00.000', 1, 1, 1, 'com.apple.x')")
+        self.replay()
+        self.assertEqual(self.store.db.execute(
+            "SELECT COUNT(*) FROM events WHERE entitled = 1").fetchone()[0], 0)
+
+
 class StoreTests(TempDB):
     def test_parse_duration(self):
         self.assertEqual(parse_duration("90s"), timedelta(seconds=90))

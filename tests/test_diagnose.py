@@ -185,6 +185,65 @@ class RuleTests(unittest.TestCase):
         self.assertEqual(rules([ev("10:00:00", "allowed", **acc)]), ["OK"])
         self.assertEqual(rules([ev("10:00:00", "undetermined", **acc)]), [])
 
+    # False positives found on real data (2026-11-11) ------------------------
+    FDA = dict(service="kTCCServiceSystemPolicyAllFiles", target=None)
+
+    def test_settings_only_permission_never_granted_is_not_a_problem(self):
+        # e.g. Dock or Messages checking Full Disk Access: denied by default.
+        self.assertEqual(rules([ev("10:00:00", "denied", **self.FDA),
+                                ev("10:05:00", "denied", **self.FDA)]), [])
+
+    def test_r7_lost_a_settings_only_permission(self):
+        events = [ev("10:00:00", "allowed", **self.FDA), ev("11:00:00", "denied", **self.FDA),
+                  ev("11:05:00", "denied", **self.FDA)]
+        ((g, (f,)),) = diagnose(events)
+        self.assertEqual(f.rule, "R7")
+        self.assertIn("allowed on 11-11 10:00", f.detail[0])
+        self.assertIn("(2 requests)", f.detail[0])
+        self.assertEqual(f.began, "2026-11-11 11:00:00.000")
+
+    def test_apple_platform_binary_default_denial_is_ignored(self):
+        contacts = dict(service="kTCCServiceAddressBook", target=None)
+        platform = [dict(ev("10:00:00", "denied", **contacts), client_platform=1)]
+        third_party = [dict(ev("10:00:00", "denied", **contacts), client_platform=0)]
+        self.assertEqual(rules(platform), [])
+        self.assertEqual(rules(third_party), ["R2"])
+        # ...unless you actually clicked "Don't Allow".
+        clicked = [dict(ev("10:00:00", "prompted-denied", **contacts), client_platform=1)]
+        self.assertEqual(rules(clicked), ["R2"])
+
+    def test_platform_fallback_for_old_rows_uses_path_identity(self):
+        contacts = dict(service="kTCCServiceAddressBook", target=None, path=None)
+        events = [ev("10:00:00", "denied", client="/System/Library/Frameworks/X.framework/x",
+                     **contacts)]
+        self.assertEqual(rules(events), [])
+
+    def test_r1c_ignores_the_automation_target(self):
+        # Automation logs the target (Finder) as "accessing"; that's not a tool.
+        events = [
+            dict(ev("05:00:00", "allowed", client="com.apple.Terminal"),
+                 function="TCCAccessRequestIndirect", accessing_id="com.apple.finder"),
+            dict(ev("05:16:35", "prompted-allowed", client="dev.sticky.brokentool"),
+                 function="TCCAccessRequestIndirect", accessing_id="com.apple.finder"),
+        ]
+        self.assertNotIn("R1c", rules(events))
+
+    def test_problem_key_is_stable_while_it_lasts(self):
+        acc = dict(service="kTCCServiceAccessibility", target=None, preflight=True)
+        base = [dict(ev("06:29:45", "allowed", **acc), stored_dr="a", stored_dr_status=0),
+                dict(ev("06:30:16", "denied", dr="b", **acc), stored_dr="a", stored_dr_status=-67050)]
+        later = base + [dict(ev("06:40:00", "denied", dr="b", **acc), stored_dr="a",
+                             stored_dr_status=-67050)]
+        key = lambda evs: diagnose(evs)[0][1][0].key  # noqa: E731
+        self.assertEqual(key(base), key(later))
+        self.assertTrue(key(base).endswith("2026-11-11 06:30:16.000"))
+
+    def test_problem_actions(self):
+        ((g, (f,)),) = diagnose([ev("04:16:05", "prompted-denied"), ev("04:16:15", "denied")])
+        self.assertEqual([a["kind"] for a in f.actions], ["open_url", "copy"])
+        self.assertTrue(f.actions[0]["value"].endswith("Privacy_Automation"))
+        self.assertEqual(f.actions[1]["value"], "tccutil reset AppleEvents com.anthropic.claude-code")
+
     def test_fix_helpers(self):
         self.assertEqual(settings_url("kTCCServiceCamera"),
                          "x-apple.systempreferences:com.apple.preference.security?Privacy_Camera")

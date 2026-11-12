@@ -20,6 +20,9 @@ R5  Kept its grant after a rebuild (info): the app was rebuilt with a
     it without asking, and the log didn't show the usual "Requirements
     match" check. Observed on macOS 27.2.1 for Automation with an ad-hoc
     signed app (week 3 test): the rebuild did NOT cause a new prompt.
+R7  Lost a permission it had: a Settings-only permission (Full Disk Access,
+    Accessibility…) was allowed and is now denied without a prompt, with no
+    requirement-check evidence (else R6).
 R6  Switched on, but not for this build: tccd checked the current build
     against the requirement saved with the grant and it failed (status
     -67050), so access is denied without asking, while System Settings
@@ -84,6 +87,21 @@ SETTINGS_ANCHORS = {
 # not something the user chose.
 NON_PROMPTING_SERVICES = {"kTCCServiceDeveloperTool"}
 
+# Services whose default is to *ask*. A refusal without a prompt means a saved
+# "deny". Everything else (Full Disk Access, Accessibility, Screen Recording,
+# Input Monitoring…) is denied by default until switched on in Settings, so a
+# refusal there is only a problem if the app was allowed before (R7).
+ASK_FIRST_SERVICES = {
+    "kTCCServiceAppleEvents", "kTCCServiceCamera", "kTCCServiceMicrophone",
+    "kTCCServiceAddressBook", "kTCCServiceCalendar", "kTCCServiceReminders",
+    "kTCCServicePhotos", "kTCCServicePhotosAdd", "kTCCServiceMediaLibrary",
+    "kTCCServiceBluetoothAlways", "kTCCServiceSpeechRecognition",
+    "kTCCServiceSystemPolicyDesktopFolder", "kTCCServiceSystemPolicyDocumentsFolder",
+    "kTCCServiceSystemPolicyDownloadsFolder", "kTCCServiceSystemPolicyNetworkVolumes",
+    "kTCCServiceSystemPolicyRemovableVolumes", "kTCCServiceUserTracking",
+    "kTCCServiceFocusStatus", "kTCCServiceMotion",
+}
+
 PROMPT_STORM_COUNT = 3
 PROMPT_STORM_WINDOW = timedelta(hours=24)
 
@@ -107,7 +125,7 @@ def tccutil_command(service: str | None, client_id: str | None) -> str | None:
 
 @dataclass
 class Finding:
-    rule: str  # R1a | R1b | R1c | R1d | R2 | R4 | OK
+    rule: str  # R1a | R1b | R1c | R1d | R2 | R4 | R5 | R6 | OK
     severity: str  # problem | info | ok
     client_id: str
     service: str
@@ -115,10 +133,20 @@ class Finding:
     title: str
     detail: list[str] = field(default_factory=list)
     fix: list[str] = field(default_factory=list)
-    when: str | None = None  # timestamp of the event the finding is about
+    when: str | None = None  # timestamp of the latest event the finding is about
+    began: str | None = None  # when the problem started; stable while it lasts
+    # Buttons for a UI: {"kind": "open_url" | "copy", "label": …, "value": …}
+    actions: list[dict] = field(default_factory=list)
+
+    @property
+    def key(self) -> str:
+        """Identifies one occurrence of a problem across refreshes (for notifications)."""
+        return f"{self.rule}|{self.client_id}|{self.service}|{self.target}|{self.began or self.when}"
 
     def to_dict(self) -> dict:
-        return dict(self.__dict__)
+        d = dict(self.__dict__)
+        d["key"] = self.key
+        return d
 
 
 @dataclass
@@ -206,30 +234,21 @@ def diagnose_group(g: Group, all_groups: list[Group] | None = None,
     if r6 is not None:
         findings.append(r6)
 
-    # R2: the saved answer is "deny".
+    # R2 / R7: denied now.
     if last.get("final_auth") == 0 and r6 is None:
         denied_at = next(
             (e for e in reversed(g.events) if e.get("prompted") and e.get("final_auth") == 0), None
         )
-        refused = [e for e in g.events if e["ts_start"] > (denied_at or last)["ts_start"]
-                   and e.get("final_auth") == 0 and not e.get("prompted")]
-        detail = []
-        if denied_at:
-            detail.append(f"You chose \"Don't Allow\" on {_when(denied_at['ts_start'])}.")
-        else:
-            detail.append("It was denied before Sticky started recording.")
-        if refused or not last.get("prompted"):
-            n = len(refused) or 1
-            detail.append(f"macOS won't ask again: {n} request{'s' if n != 1 else ''} since "
-                          f"{'were' if n != 1 else 'was'} refused without a prompt.")
-        fix = [f"Turn it on in System Settings → Privacy & Security → {service_name(g.service)}: "
-               f"open \"{settings_url(g.service)}\""]
-        if cmd := tccutil_command(g.service, g.client_id):
-            fix.append(f"Or make macOS ask again: {cmd}"
-                       + (" (resets this app's Automation for every target)"
-                          if g.service == "kTCCServiceAppleEvents" else ""))
-        findings.append(Finding("R2", "problem", **base, when=last["ts_start"],
-                                title="Denied: requests are refused silently", detail=detail, fix=fix))
+        streak = len(g.events)
+        while streak > 0 and g.events[streak - 1].get("final_auth") == 0:
+            streak -= 1
+        allowed_before = [e for e in g.events[:streak] if e.get("final_auth") == 2]
+        if denied_at or (g.service in ASK_FIRST_SERVICES and not _is_platform(g)):
+            findings.append(_silent_denial(g, last, denied_at, streak, base))
+        elif allowed_before:
+            findings.append(_lost_permission(g, last, allowed_before[-1], streak, base))
+        # Otherwise it was never granted: for Settings-only permissions such
+        # as Full Disk Access that's the default, not a problem.
 
     # R4: prompt storm.
     prompts = [e for e in g.events if e.get("prompted")]
@@ -237,7 +256,7 @@ def diagnose_group(g: Group, all_groups: list[Group] | None = None,
         window = prompts[i : i + PROMPT_STORM_COUNT]
         if _parse(window[-1]["ts_start"]) - _parse(window[0]["ts_start"]) <= PROMPT_STORM_WINDOW:
             findings.append(Finding(
-                "R4", "info", **base, when=window[-1]["ts_start"],
+                "R4", "info", **base, when=window[-1]["ts_start"], began=window[0]["ts_start"],
                 title=f"Asked {len(prompts)} times",
                 detail=[f"{PROMPT_STORM_COUNT} prompts within 24 hours, the latest on "
                         f"{_when(window[-1]['ts_start'])}."],
@@ -266,7 +285,20 @@ def diagnose_group(g: Group, all_groups: list[Group] | None = None,
                           f"{_when(since['ts_start'])}.")
         findings.append(Finding("OK", "ok", **base, when=last["ts_start"], title="Allowed",
                                 detail=detail))
+    for f in findings:
+        if f.severity == "problem" and not f.actions:
+            f.actions = _actions_for(f)
     return findings
+
+
+def _actions_for(f: Finding) -> list[dict]:
+    actions = []
+    if f.service in SETTINGS_ANCHORS:
+        actions.append({"kind": "open_url", "label": f"Open {service_name(f.service)} settings",
+                        "value": settings_url(f.service)})
+    if f.rule in ("R2", "R6", "R7") and (cmd := tccutil_command(f.service, f.client_id)):
+        actions.append({"kind": "copy", "label": "Copy reset command", "value": cmd})
+    return actions
 
 
 def _why_reprompted(g: Group, ev: dict, earlier: list[dict], settled: dict,
@@ -314,6 +346,61 @@ def _why_reprompted(g: Group, ev: dict, earlier: list[dict], settled: dict,
                         "profile resets privacy permissions."])
 
 
+def _is_platform(g: Group) -> bool:
+    """Apple platform binaries can't prompt, so their refusals are the default."""
+    flags = [e.get("client_platform") for e in g.events if e.get("client_platform") is not None]
+    if flags:
+        return bool(flags[-1])
+    # Recorded before this was logged: fall back to where the code lives.
+    path = next((e.get("client_path") for e in reversed(g.events) if e.get("client_path")), "") or ""
+    if not path and g.client_id.startswith("/"):
+        path = g.client_id  # identified by path
+    return path.startswith(("/System/", "/usr/", "/Library/Apple/")) or (
+        g.client_id.startswith("com.apple.") and not path.startswith("/Applications/"))
+
+
+def _silent_denial(g: Group, last: dict, denied_at: dict | None, streak: int,
+                   base: dict) -> Finding:
+    refused = [e for e in g.events if e["ts_start"] > (denied_at or last)["ts_start"]
+               and e.get("final_auth") == 0 and not e.get("prompted")]
+    detail = []
+    if denied_at:
+        detail.append(f"You chose \"Don't Allow\" on {_when(denied_at['ts_start'])}.")
+    else:
+        detail.append("It was denied before Sticky started recording.")
+    if refused or not last.get("prompted"):
+        n = len(refused) or 1
+        detail.append(f"macOS won't ask again: {n} request{'s' if n != 1 else ''} since "
+                      f"{'were' if n != 1 else 'was'} refused without a prompt.")
+    fix = [f"Turn it on in System Settings → Privacy & Security → {service_name(g.service)}: "
+           f"open \"{settings_url(g.service)}\""]
+    if cmd := tccutil_command(g.service, g.client_id):
+        fix.append(f"Or make macOS ask again: {cmd}"
+                   + (" (resets this app's Automation for every target)"
+                      if g.service == "kTCCServiceAppleEvents" else ""))
+    began = (denied_at or g.events[streak])["ts_start"]
+    return Finding("R2", "problem", **base, when=last["ts_start"], began=began,
+                   title="Denied: requests are refused silently", detail=detail, fix=fix)
+
+
+def _lost_permission(g: Group, last: dict, allowed: dict, streak: int, base: dict) -> Finding:
+    first_denied = g.events[streak]
+    n = len(g.events) - streak
+    name = service_name(g.service)
+    return Finding(
+        "R7", "problem", **base, when=last["ts_start"], began=first_denied["ts_start"],
+        title="Lost a permission it had",
+        detail=[f"It was allowed on {_when(allowed['ts_start'])}, and has been denied since "
+                f"{_when(first_denied['ts_start'])} ({n} request{'s' if n != 1 else ''}), "
+                f"without a prompt.",
+                f"Either it was switched off in System Settings → {name}, the saved approval was "
+                f"reset, or the app changed in a way the log didn't show."],
+        fix=[f"Check System Settings → Privacy & Security → {name} "
+             f"(open \"{settings_url(g.service)}\"). If it's on, remove it with − and add it "
+             f"again with +."],
+    )
+
+
 def _not_for_this_build(g: Group, base: dict) -> Finding | None:
     from .rules import REQUIREMENT_FAILED
 
@@ -349,7 +436,7 @@ def _not_for_this_build(g: Group, base: dict) -> Finding | None:
     if (last.get("client_dr") or last.get("stored_dr") or "").startswith("cdhash"):
         fix.append("To stop this after every rebuild, sign with a stable identity (Developer ID "
                    "or Apple Development certificate) instead of ad-hoc.")
-    return Finding("R6", "problem", **base, when=last["ts_start"],
+    return Finding("R6", "problem", **base, when=last["ts_start"], began=first_fail["ts_start"],
                    title="Switched on, but not for this build", detail=detail, fix=fix)
 
 
@@ -384,8 +471,10 @@ def _kept_after_rebuild(g: Group, builds: list[Mapping], base: dict) -> Finding 
 
 
 def _granted_under_other_app(ev: dict, g: Group, all_groups: list[Group]) -> dict | None:
+    if (ev.get("function") or "").startswith("TCCAccessRequestIndirect"):
+        return None  # Automation: "accessing"/"requesting" are the target app, not the tool
     tool = ev.get("requesting_id") or ev.get("accessing_id")
-    if not tool or tool == g.client_id:
+    if not tool or tool in (g.client_id, g.target):
         return None
     for other in all_groups:
         if other is g or other.service != g.service or other.target != g.target:

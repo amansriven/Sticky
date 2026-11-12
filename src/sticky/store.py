@@ -32,7 +32,7 @@ EVENT_COLUMNS = (
     "target_id", "target_name", "client_name",
     "auth_before", "auth_result", "prompted", "auth_after", "client_result",
     "requirements_match", "usage_string", "policy_allowed", "entitled",
-    "final_auth", "outcome", "stored_dr", "stored_dr_status",
+    "final_auth", "outcome", "stored_dr", "stored_dr_status", "client_platform",
 )
 TEXT_COLUMNS = {
     "ts_start", "ts_end", "msg_id", "tccd_scope", "function", "ended_by", "service",
@@ -283,6 +283,24 @@ class Store:
         ).fetchall()
 
     # Retention ----------------------------------------------------------------
+    def prune_noise(self) -> int:
+        """Once per database: remove rows older versions stored but never need.
+
+        Entitlement shortcuts and decisions with no app attached (see
+        recorder.worth_storing). Then compacts the file. Returns rows removed.
+        """
+        done = self.db.execute("SELECT value FROM meta WHERE key = 'pruned_noise'").fetchone()
+        if done:
+            return 0
+        cur = self.db.execute("DELETE FROM events WHERE entitled = 1 OR client_id IS NULL")
+        removed = cur.rowcount
+        self.db.execute("INSERT OR REPLACE INTO meta (key, value) VALUES ('pruned_noise', ?)", (now_ts(),))
+        try:
+            self.db.execute("VACUUM")
+        except sqlite3.OperationalError:
+            pass  # another connection is busy; the space is reused anyway
+        return removed
+
     def purge(self, days: int = DEFAULT_RETENTION_DAYS) -> int:
         cutoff = ts_ago(timedelta(days=days))
         cur = self.db.execute("DELETE FROM events WHERE ts_start < ?", (cutoff,))

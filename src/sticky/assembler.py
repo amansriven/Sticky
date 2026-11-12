@@ -86,6 +86,7 @@ class Event:
     entitled: bool = False  # decided by a built-in entitlement, never prompts
     stored_dr: str | None = None  # requirement saved with the grant
     stored_dr_status: int | None = None  # 0 = this build matches it; -67050 = doesn't
+    client_platform: bool | None = None  # an Apple platform binary (can never prompt)
 
     # Bookkeeping
     lines: int = 0
@@ -96,7 +97,9 @@ class Event:
     _drs: dict = field(default_factory=dict, repr=False)
     _identity_types: dict = field(default_factory=dict, repr=False)
     _binary_paths: dict = field(default_factory=dict, repr=False)  # identifier -> binary_path
+    _platform: dict = field(default_factory=dict, repr=False)  # identifier -> platform binary?
     _row_id: int | None = field(default=None, repr=False)  # set by a store
+    _entitled_identifier: str | None = field(default=None, repr=False)
 
     # -- Derived ------------------------------------------------------------
     @property
@@ -139,6 +142,7 @@ class Event:
     def resolve(self) -> None:
         """Fill client/target fields from whichever lines had them unredacted."""
         candidates = (
+            self._entitled_identifier,
             self._bundle_id, self._handling_client, self._subject, self.responsible_id,
             self.accessing_id if self.entitled else None,
         )
@@ -155,6 +159,7 @@ class Event:
             self.client_path = str(code_path_for(self.client_path))
         if self.client_id is not None:
             self.client_dr = self._drs.get(self.client_id)
+            self.client_platform = self._platform.get(self.client_id)
             self.client_type = self._identity_types.get(self.client_id)
         if self.target_id is None and self.function and "Indirect" in self.function:
             # For Automation, tccd's "accessing" process is the target app.
@@ -323,6 +328,13 @@ class Assembler:
         if m := rules.POLICY.search(msg):
             matched = True
             ev.policy_allowed = m["value"] == "True"
+        if m := rules.GRANTED_VIA_ENTITLEMENT.search(msg):
+            matched = True
+            ev.entitled = True
+            ev.service = ev.service or m["service"]
+            ev._entitled_identifier = public(m["identifier"])
+            if ev.auth_result is None:
+                ev.auth_result = 2
         if m := rules.ENTITLED.search(msg):
             matched = True
             ev.entitled = True
@@ -349,6 +361,9 @@ class Assembler:
         if rules.USAGE_STRING.search(msg):
             matched = True
             ev.usage_string = True
+        if m := rules.PLATFORM_BINARY.search(msg):
+            matched = True
+            ev._platform.setdefault(m["identifier"].strip(), m["value"] == "Yes")
         if m := rules.STORED_REQUIREMENT_CHECK.search(msg):
             matched = True
             requirement = m["requirement"].strip()

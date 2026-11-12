@@ -47,6 +47,14 @@ HANDLING_DIRECT = re.compile(
     r"Sub:\{(?P<subject>[^}]*)\}Resp:\{TCCDProcess: identifier=(?P<responsible>[^,]+)"
 )
 POLICY = re.compile(r"allowed_by_policy for (?P<service>\w+) is (?P<value>True|False)")
+# Another entitlement shortcut, mostly Apple daemons (about 80% of all decisions
+# over a 24-hour run on macOS 27.2.1):
+#   "Granting TCCDProcess: identifier=com.apple.assistantd, pid=…, binary_path=…
+#    access to kTCCServiceMediaLibrary via entitlement 'com.apple.private.tcc.allow'"
+GRANTED_VIA_ENTITLEMENT = re.compile(
+    r"Granting TCCDProcess: identifier=(?P<identifier>[^,]+),.*? access to "
+    r"(?P<service>kTCCService\w+) via entitlement"
+)
 # Shortcut for processes with a built-in (entitlement) permission. tccd logs
 # this and does not log a REPLY for the request.
 #   "Auth:Allowed (Entitled) to kTCCServiceListenEvent for TCCDProcess: identifier=com.apple.finder, …"
@@ -77,6 +85,11 @@ STORED_REQUIREMENT_CHECK = re.compile(
     r"from (?P<identifier>.+?) : (?P<requirement>.+); status: (?P<status>-?\d+)"
 )
 PLATFORM_REQUIREMENT = "anchor apple"
+# Whether an identity is an Apple platform binary. Platform binaries are never
+# allowed to prompt ("Platform binary prompting is 'Deny'"), so a refusal is
+# their default rather than a saved decision.
+#   "For com.apple.finder: matches platform requirements: Yes"
+PLATFORM_BINARY = re.compile(r"For (?P<identifier>.+?): matches platform requirements: (?P<value>Yes|No)")
 REQUIREMENT_FAILED = -67050
 
 # -- Identity of the app asking ---------------------------------------------
@@ -113,8 +126,9 @@ CLIENT_RESULT = re.compile(
 # is counted as "unrecognised" (most are harmless noise like REQUEST_MSG).
 FACT_PATTERNS = (
     REQUEST, REPLY, AUTHREQ_CTX, AUTHREQ_SUBJECT, AUTHREQ_RESULT,
-    HANDLING_INDIRECT, HANDLING_DIRECT, POLICY, ENTITLED, PROMPTING, PUBLISH_CHANGE,
-    REQUIREMENTS_MATCH, USAGE_STRING, STORED_REQUIREMENT_CHECK, BUNDLE,
+    HANDLING_INDIRECT, HANDLING_DIRECT, POLICY, ENTITLED, GRANTED_VIA_ENTITLEMENT, PROMPTING,
+    PUBLISH_CHANGE,
+    REQUIREMENTS_MATCH, USAGE_STRING, STORED_REQUIREMENT_CHECK, PLATFORM_BINARY, BUNDLE,
     DESIGNATED_REQUIREMENT, IDENTITY,
     ATTRIBUTION_LINE,
 )
