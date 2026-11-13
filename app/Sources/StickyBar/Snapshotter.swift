@@ -35,8 +35,7 @@ enum Snapshotter {
             await waitUntil { !model.isRefreshing && (model.report != nil || model.errorMessage != nil) }
             switch page {
             case "menu":
-                render(MenuView(model: model).fixedSize(horizontal: false, vertical: true),
-                       size: CGSize(width: 380, height: 560), to: path)
+                render(MenuView(model: model), size: CGSize(width: 360, height: 0), to: path)
             case "settings":
                 render(SettingsView(settings: AppSettings.shared, model: model),
                        size: CGSize(width: 480, height: 640), to: path)
@@ -68,9 +67,18 @@ enum Snapshotter {
     /// Draw a view in an offscreen window (AppKit-backed views like List and
     /// ScrollView render properly this way, unlike with ImageRenderer).
     private static func render<V: View>(_ view: V, size: CGSize, to path: String) {
-        let host = NSHostingView(rootView: view.frame(width: size.width, height: size.height)
-            .background(Theme.pageFill))
-        host.frame = CGRect(origin: .zero, size: size)
+        // Draw controls as in an active window (offscreen windows are never key,
+        // so prominent buttons would come out gray), and size to fit if asked.
+        let content = view.environment(\.controlActiveState, .key).background(Theme.pageFill)
+        let host: NSHostingView<AnyView>
+        if size.height == 0 {
+            host = NSHostingView(rootView: AnyView(content.frame(width: size.width)))
+            let fit = host.fittingSize
+            host.frame = CGRect(origin: .zero, size: CGSize(width: size.width, height: fit.height))
+        } else {
+            host = NSHostingView(rootView: AnyView(content.frame(width: size.width, height: size.height)))
+            host.frame = CGRect(origin: .zero, size: size)
+        }
         let window = NSWindow(contentRect: host.frame, styleMask: [.borderless], backing: .buffered, defer: false)
         window.appearance = NSApp.appearance
         window.backgroundColor = .windowBackgroundColor
