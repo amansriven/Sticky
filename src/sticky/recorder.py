@@ -37,6 +37,7 @@ LOG_COMMAND = (
 )
 
 HEARTBEAT_SECONDS = 60
+FIRST_HEARTBEAT_SECONDS = 5
 # Close requests still open after this long. Longer than anyone leaves a
 # permission prompt unanswered; short enough that memory stays flat.
 OPEN_REQUEST_TIMEOUT = timedelta(minutes=15)
@@ -143,7 +144,8 @@ class Recorder:
             self.log(f"could not start {self.command[0]}: {e}")
             return None
 
-        next_beat = time.monotonic() + HEARTBEAT_SECONDS
+        # First heartbeat soon after start, so `sticky status` isn't stale for a minute.
+        next_beat = time.monotonic() + FIRST_HEARTBEAT_SECONDS
         try:
             for rec in iter_ndjson(self._proc.stdout):
                 self.counts["records"] += 1

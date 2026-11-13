@@ -104,7 +104,8 @@ class Identity:
 
     def to_dict(self) -> dict:
         d = dict(self.__dict__)
-        d.update(dr_kind=self.dr_kind, stable=self.stable, dr_hash=self.dr_hash)
+        d.update(dr_kind=self.dr_kind, stable=self.stable, dr_hash=self.dr_hash,
+                 explanation=self.explain() if self.exists else self.error)
         return d
 
 

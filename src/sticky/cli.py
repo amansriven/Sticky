@@ -9,7 +9,9 @@ Commands:
   sticky log               timeline of recorded permission decisions
   sticky why APP           explain why an app keeps being asked, or is refused
   sticky inspect PATH|ID   an app's signing identity: will grants stick?
-  sticky report --json     health and findings as JSON (used by the menu bar app)
+  sticky report --json     health and findings as JSON (used by the app)
+  sticky events ID --json  one app's decisions as JSON (the app's timeline)
+  sticky ignore / ignores / unignore   stop (or resume) reporting a finding
 """
 
 from __future__ import annotations
@@ -189,6 +191,36 @@ def cmd_status(args: argparse.Namespace) -> int:
         return 0 if h["state"] == "running" else 1
 
 
+EVENT_FIELDS = (
+    "id", "ts_start", "ts_end", "service", "target_id", "target_name", "outcome", "prompted",
+    "preflight", "auth_before", "auth_after", "final_auth", "requirements_match",
+    "stored_dr_status", "client_version", "client_path", "client_dr", "requesting_id",
+    "accessing_id", "tccd_scope",
+)
+
+
+def cmd_events(args: argparse.Namespace) -> int:
+    from .diagnose import service_name
+
+    try:
+        since = None if args.since in (None, "all") else ts_ago(parse_duration(args.since))
+    except ValueError as e:
+        print(f"sticky events: {e}", file=sys.stderr)
+        return 2
+    with _open_store(args) as store:
+        rows = store.events_for(args.client_id, since=since, limit=args.limit)
+    events = []
+    for r in rows:
+        e = {k: r[k] for k in EVENT_FIELDS}
+        for flag in ("prompted", "preflight", "requirements_match"):
+            e[flag] = bool(e[flag])
+        e["service_name"] = service_name(r["service"])
+        events.append(e)
+    print(json.dumps({"client_id": args.client_id, "since": since, "events": events},
+                     indent=None if args.compact else 2))
+    return 0
+
+
 def cmd_report(args: argparse.Namespace) -> int:
     from .report import build_report
 
@@ -210,7 +242,7 @@ def _print_identity(ident, indent: str = "  ") -> None:
 
 
 def cmd_why(args: argparse.Namespace) -> int:
-    from .diagnose import diagnose
+    from .diagnose import diagnose, ignored_by
     from .identity import inspect
 
     try:
@@ -223,6 +255,15 @@ def cmd_why(args: argparse.Namespace) -> int:
         rows = store.query_events(since=since, client=args.app)
         clients = {r["client_id"] for r in rows if r["client_id"]}
         results = diagnose(rows, {c: store.identities_for(c) for c in clients})
+        ignores = [dict(r) for r in store.list_ignores()]
+        hidden = 0
+        if not args.include_ignored:
+            visible = []
+            for g, findings in results:
+                kept = [f for f in findings if f.severity == "ok" or ignored_by(f, ignores) is None]
+                hidden += len(findings) - len(kept)
+                visible.append((g, kept))
+            results = visible
         if args.json:
             for g, findings in results:
                 print(json.dumps({"client_id": g.client_id, "service": g.service,
@@ -273,7 +314,70 @@ def cmd_why(args: argparse.Namespace) -> int:
                     for line in f.fix:
                         print(f"      Fix: {line}")
             print()
+        if hidden:
+            print(f"{hidden} ignored finding{'s' if hidden != 1 else ''} hidden. "
+                  f"Show {'them' if hidden != 1 else 'it'} with --include-ignored; list ignore rules with `sticky ignores`.")
         return 1 if problems else 0
+
+
+def _service_id(name: str | None) -> str | None:
+    if not name:
+        return None
+    return name if name.startswith("kTCCService") else "kTCCService" + name
+
+
+def cmd_ignore(args: argparse.Namespace) -> int:
+    with _open_store(args) as store:
+        if args.key:
+            parts = args.key.split("|")
+            if len(parts) != 5:
+                print("sticky ignore: a finding key looks like RULE|APP|SERVICE|TARGET|STARTED "
+                      "(see `sticky why APP --json` or `sticky report`)", file=sys.stderr)
+                return 2
+            _, client, service, target, _ = parts
+            ig = store.add_ignore("finding", client, service, None if target == "None" else target,
+                                  finding_key=args.key)
+            what = "this finding"
+        elif args.app:
+            service = _service_id(args.service)
+            scope = "permission" if service else "app"
+            ig = store.add_ignore(scope, args.app, service, args.target)
+            what = (f"{args.app} · {service.removeprefix('kTCCService')}"
+                    + (f" → {args.target}" if args.target else "")) if service else f"everything about {args.app}"
+        else:
+            print("sticky ignore: give a finding KEY, or --app (with --service/--target)", file=sys.stderr)
+            return 2
+    print(f"Ignoring {what} (rule {ig}). Undo with: sticky unignore {ig}")
+    return 0
+
+
+def cmd_ignores(args: argparse.Namespace) -> int:
+    from .diagnose import service_name
+
+    with _open_store(args) as store:
+        rows = [dict(r) for r in store.list_ignores()]
+    if args.json:
+        print(json.dumps(rows))
+        return 0
+    if not rows:
+        print("Nothing is ignored.")
+        return 0
+    for r in rows:
+        if r["scope"] == "app":
+            what = f"everything about {r['client_id']}"
+        elif r["scope"] == "permission":
+            what = f"{r['client_id']} · {service_name(r['service'])}" + (f" → {r['target']}" if r["target"] else "")
+        else:
+            what = f"one finding: {r['finding_key']}"
+        print(f"{r['id']:>4}  {r['created_at'][:16]}  {what}")
+    return 0
+
+
+def cmd_unignore(args: argparse.Namespace) -> int:
+    with _open_store(args) as store:
+        ok = store.remove_ignore(args.id)
+    print(f"Removed ignore rule {args.id}." if ok else f"There's no ignore rule {args.id}.")
+    return 0 if ok else 1
 
 
 def cmd_inspect(args: argparse.Namespace) -> int:
@@ -367,6 +471,7 @@ def main(argv: list[str] | None = None) -> int:
     p.add_argument("app", help="bundle id, name or path fragment, e.g. claude or com.apple.Terminal")
     p.add_argument("--since", default="30d", help="how far back: 2h, 7d or all (default 30d)")
     p.add_argument("--json", action="store_true", help="one JSON object per app + permission + target")
+    p.add_argument("--include-ignored", action="store_true", help="also show findings you ignored")
     p.set_defaults(func=cmd_why)
 
     p = sub.add_parser("inspect", help="show an app's signing identity and whether grants will stick")
@@ -379,6 +484,29 @@ def main(argv: list[str] | None = None) -> int:
     p.add_argument("--json", action="store_true", help="accepted for symmetry; output is always JSON")
     p.add_argument("--compact", action="store_true", help="one line, no indentation")
     p.set_defaults(func=cmd_report)
+
+    p = sub.add_parser("events", help="one app's recorded decisions as JSON, newest first")
+    p.add_argument("client_id", help="exact bundle id (or path, for apps identified by path)")
+    p.add_argument("--since", default="30d", help="how far back: 2h, 7d or all (default 30d)")
+    p.add_argument("--limit", type=int, default=500, help="newest N (default 500)")
+    p.add_argument("--json", action="store_true", help="accepted for symmetry; output is always JSON")
+    p.add_argument("--compact", action="store_true", help="one line, no indentation")
+    p.set_defaults(func=cmd_events)
+
+    p = sub.add_parser("ignore", help="stop reporting a finding, a permission, or an app")
+    p.add_argument("key", nargs="?", help="a finding key (RULE|APP|SERVICE|TARGET|STARTED) to ignore once")
+    p.add_argument("--app", help="bundle id: always ignore this app (or one of its permissions)")
+    p.add_argument("--service", help="with --app: only this permission, e.g. Microphone")
+    p.add_argument("--target", help="with --service AppleEvents: only this target app")
+    p.set_defaults(func=cmd_ignore)
+
+    p = sub.add_parser("ignores", help="list ignore rules")
+    p.add_argument("--json", action="store_true")
+    p.set_defaults(func=cmd_ignores)
+
+    p = sub.add_parser("unignore", help="remove an ignore rule")
+    p.add_argument("id", type=int)
+    p.set_defaults(func=cmd_unignore)
 
     p = sub.add_parser("status", help="is the recorder running and healthy?")
     p.set_defaults(func=cmd_status)

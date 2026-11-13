@@ -64,6 +64,28 @@ SERVICE_NAMES = {
     "kTCCServiceBluetoothAlways": "Bluetooth",
     "kTCCServiceSpeechRecognition": "Speech Recognition",
     "kTCCServiceUbiquity": "iCloud",
+    "kTCCServiceWebBrowserPublicKeyCredential": "Passkeys",
+    "kTCCServiceSystemPolicyAppBundles": "App Management",
+    "kTCCServiceSystemPolicyAppData": "Other apps' data",
+    "kTCCServiceSystemPolicyAppDataDetailed": "Other apps' data",
+    "kTCCServiceSystemPolicySysAdminFiles": "Admin files",
+    "kTCCServiceFileProviderDomain": "File Provider",
+    "kTCCServiceFileProviderPresence": "File Provider presence",
+    "kTCCServiceLocation": "Location",
+    "kTCCServiceLiverpool": "Location (system)",
+    "kTCCServicePhotosAdd": "Photos (add only)",
+    "kTCCServiceUserTracking": "Tracking",
+    "kTCCServiceFocusStatus": "Focus status",
+    "kTCCServiceMotion": "Motion & Fitness",
+    "kTCCServiceWillow": "Home",
+    "kTCCServiceSiri": "Siri",
+    "kTCCServiceSiriAccess": "Siri",
+    "kTCCServiceGameCenterFriends": "Game Center friends",
+    "kTCCServiceLinkedIn": "LinkedIn",
+    "kTCCServiceAudioCapture": "System audio recording",
+    "kTCCServiceRemoteDesktop": "Remote Desktop",
+    "kTCCServiceEndpointSecurityClient": "Endpoint Security",
+    "kTCCServiceBluetoothPeripheral": "Bluetooth",
 }
 
 # Anchors for x-apple.systempreferences:com.apple.preference.security?<anchor>
@@ -137,6 +159,10 @@ class Finding:
     began: str | None = None  # when the problem started; stable while it lasts
     # Buttons for a UI: {"kind": "open_url" | "copy", "label": …, "value": …}
     actions: list[dict] = field(default_factory=list)
+    # What a UI can draw instead of prose, e.g.
+    #   {"kind": "builds", "approved": <requirement>, "current": <requirement>}
+    #   {"kind": "paths", "before": <path>, "after": <path>}
+    evidence: dict | None = None
 
     @property
     def key(self) -> str:
@@ -324,6 +350,7 @@ def _why_reprompted(g: Group, ev: dict, earlier: list[dict], settled: dict,
             fix.append("For your own builds: sign every build with the same certificate, "
                        "e.g. codesign -s \"Apple Development: …\" <app>")
         return Finding("R1b", "problem", **base, when=when,
+                       evidence={"kind": "builds", "approved": old_dr, "current": new_dr},
                        title="Asked again: the app's signing identity changed",
                        detail=detail, fix=fix)
 
@@ -331,6 +358,7 @@ def _why_reprompted(g: Group, ev: dict, earlier: list[dict], settled: dict,
     path_identity = ev.get("client_type") == 1 or not new_dr
     if old_path and new_path and old_path != new_path and path_identity:
         return Finding("R1a", "problem", **base, when=when,
+                       evidence={"kind": "paths", "before": old_path, "after": new_path},
                        title="Asked again: the app moved",
                        detail=[lead, "macOS identifies this app by its location, and it moved:",
                                f"  before: {old_path}", f"  now:    {new_path}"],
@@ -437,7 +465,9 @@ def _not_for_this_build(g: Group, base: dict) -> Finding | None:
         fix.append("To stop this after every rebuild, sign with a stable identity (Developer ID "
                    "or Apple Development certificate) instead of ad-hoc.")
     return Finding("R6", "problem", **base, when=last["ts_start"], began=first_fail["ts_start"],
-                   title="Switched on, but not for this build", detail=detail, fix=fix)
+                   title="Switched on, but not for this build", detail=detail, fix=fix,
+                   evidence={"kind": "builds", "approved": last.get("stored_dr"),
+                             "current": last.get("client_dr")})
 
 
 def _last_allowed_ts(g: Group) -> str:
@@ -458,12 +488,13 @@ def _kept_after_rebuild(g: Group, builds: list[Mapping], base: dict) -> Finding 
         return None
     return Finding(
         "R5", "info", **base, when=last["ts_start"],
+        evidence={"kind": "builds", "approved": approved["client_dr"], "current": current["dr"]},
         title="Kept its permission after a rebuild",
         detail=[f"You approved the build signed as {_short_dr(approved['client_dr'])} "
                 f"on {_when(approved['ts_start'])}.",
                 f"The current build is signed as {_short_dr(current['dr'])} "
-                f"(first seen {_when(current['first_seen'])}), which doesn't match,",
-                f"yet macOS allowed it on {_when(last['ts_start'])} without asking, and the log "
+                f"(first seen {_when(current['first_seen'])}), which doesn't match.",
+                f"macOS still allowed it on {_when(last['ts_start'])} without asking, and the log "
                 f"didn't show its usual signature-match check.",
                 "macOS 27 carried the earlier answer over to the new build. Other permissions "
                 "(or other macOS versions) may not, so a rebuild can still cause a new prompt."],
@@ -504,6 +535,21 @@ def _blamed_finding(ev: dict, granted: dict, base: dict) -> Finding:
 
 def _parse(ts: str) -> datetime:
     return datetime.strptime(ts[:19], "%Y-%m-%d %H:%M:%S")
+
+
+def ignored_by(f: "Finding", ignores: Iterable[Mapping]) -> int | None:
+    """The id of the ignore rule that hides this finding, if any."""
+    for ig in ignores:
+        if ig["client_id"] != f.client_id:
+            continue
+        scope = ig["scope"]
+        if scope == "app":
+            return ig["id"]
+        if scope == "permission" and ig["service"] == f.service and ig["target"] == f.target:
+            return ig["id"]
+        if scope == "finding" and ig["finding_key"] == f.key:
+            return ig["id"]
+    return None
 
 
 def diagnose(events: Iterable[Mapping],

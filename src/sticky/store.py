@@ -84,6 +84,16 @@ CREATE TABLE IF NOT EXISTS identities (     -- one row per distinct build seen
     UNIQUE (code_path, cdhash)
 );
 
+CREATE TABLE IF NOT EXISTS ignores (         -- findings the user chose to ignore
+    id          INTEGER PRIMARY KEY,
+    scope       TEXT NOT NULL,              -- finding | permission | app
+    client_id   TEXT NOT NULL,
+    service     TEXT,                       -- permission scope
+    target      TEXT,                       -- permission scope (Automation target)
+    finding_key TEXT,                       -- finding scope: one occurrence
+    created_at  TEXT NOT NULL
+);
+
 CREATE TABLE IF NOT EXISTS unrecognised (
     template TEXT PRIMARY KEY,  -- formatString (ndjson) or message prefix
     count    INTEGER NOT NULL,
@@ -231,6 +241,19 @@ class Store:
         rows.reverse()  # oldest first for display
         return rows
 
+    def events_for(self, client_id: str, since: str | None = None,
+                   limit: int | None = 500) -> list[sqlite3.Row]:
+        """One app's decisions (exact client id), newest first."""
+        sql = "SELECT * FROM events WHERE client_id = ?"
+        args: list = [client_id]
+        if since:
+            sql += " AND ts_start >= ?"
+            args.append(since)
+        sql += " ORDER BY ts_start DESC, id DESC"
+        if limit:
+            sql += f" LIMIT {int(limit)}"
+        return self.db.execute(sql, args).fetchall()
+
     def count_events(self) -> int:
         return int(self.db.execute("SELECT COUNT(*) FROM events").fetchone()[0])
 
@@ -267,6 +290,27 @@ class Store:
     def first_run_started(self) -> str | None:
         row = self.db.execute("SELECT MIN(started_at) FROM runs").fetchone()
         return row[0] if row else None
+
+    # Ignored findings -----------------------------------------------------------
+    def add_ignore(self, scope: str, client_id: str, service: str | None = None,
+                   target: str | None = None, finding_key: str | None = None) -> int:
+        if scope not in ("finding", "permission", "app"):
+            raise ValueError(f"unknown ignore scope {scope!r}")
+        existing = self.db.execute(
+            "SELECT id FROM ignores WHERE scope = ? AND client_id = ? AND service IS ? AND target IS ? "
+            "AND finding_key IS ?", (scope, client_id, service, target, finding_key)).fetchone()
+        if existing:
+            return int(existing[0])
+        cur = self.db.execute(
+            "INSERT INTO ignores (scope, client_id, service, target, finding_key, created_at) "
+            "VALUES (?, ?, ?, ?, ?, ?)", (scope, client_id, service, target, finding_key, now_ts()))
+        return int(cur.lastrowid)
+
+    def remove_ignore(self, ignore_id: int) -> bool:
+        return self.db.execute("DELETE FROM ignores WHERE id = ?", (ignore_id,)).rowcount > 0
+
+    def list_ignores(self) -> list[sqlite3.Row]:
+        return self.db.execute("SELECT * FROM ignores ORDER BY created_at DESC, id DESC").fetchall()
 
     # Health -------------------------------------------------------------------
     def add_unrecognised(self, counts: dict[str, int]) -> None:

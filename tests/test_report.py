@@ -36,7 +36,7 @@ class ReportTests(unittest.TestCase):
     def test_top_level_shape(self):
         r = self.report()
         self.assertEqual(set(r), {"sticky_version", "generated_at", "since", "recorder",
-                                  "problems", "apps"})
+                                  "problems", "activity", "ignored", "apps"})
         json.dumps(r)  # serialisable
 
     def test_recorder_health(self):
@@ -64,6 +64,35 @@ class ReportTests(unittest.TestCase):
         # Problems are listed first.
         self.assertEqual(claude["permissions"][0]["status"], "problem")
 
+    def test_activity_has_24_hourly_buckets(self):
+        a = self.report()["activity"]
+        self.assertEqual(len(a["hours"]), 24)
+        self.assertEqual(set(a["totals"]), {"allowed", "denied", "asked", "apps"})
+        self.assertTrue(all(h["hour"].endswith(":00") for h in a["hours"]))
+
+    def test_activity_counts_recent_decisions(self):
+        from sticky.report import activity
+        from sticky.store import now_ts
+        self.store.db.execute(
+            "INSERT INTO events (ts_start, tccd_pid, tid, service, final_auth, prompted, preflight, "
+            "entitled, client_id, client_path) VALUES "
+            "(?, 9, 9, 'kTCCServiceCamera', 0, 0, 0, 0, 'com.x', '/Applications/X.app'), "
+            "(?, 9, 8, 'kTCCServiceCamera', 2, 1, 0, 0, 'com.x', '/Applications/X.app'), "
+            "(?, 9, 7, 'kTCCServiceSystemPolicyAllFiles', 0, 0, 0, 0, 'com.apple.dock', "
+            "'/System/Library/CoreServices/Dock.app')", (now_ts(), now_ts(), now_ts()))
+        a = activity(self.store)
+        self.assertEqual(a["totals"], {"allowed": 0, "denied": 1, "asked": 1, "apps": 1})
+        self.assertEqual(a["hours"][-1]["denied"], 1)
+        self.assertEqual(activity(self.store, include_system=True)["totals"]["denied"], 2)
+
+    def test_app_kind(self):
+        from sticky.report import app_kind
+        self.assertEqual(app_kind("com.apple.Music", "/System/Applications/Music.app", None), "system")
+        self.assertEqual(app_kind("/usr/libexec/routined", None, None), "system")
+        self.assertEqual(app_kind("com.apple.Xcode", "/Applications/Xcode.app", None), "app")
+        self.assertEqual(app_kind("com.google.Chrome", "/Applications/Google Chrome.app", None), "app")
+        self.assertEqual(app_kind("com.x", "/Applications/X.app", True), "system")
+
     def test_app_name(self):
         self.assertEqual(app_name("/usr/libexec/foo", None), "foo")
         self.assertEqual(app_name("com.example.Tool", "/nonexistent/Tool.app"), "Tool")
@@ -76,6 +105,33 @@ class ReportTests(unittest.TestCase):
             cli.main(["--db", str(self.db), "report", "--since", "all", "--compact"])
         r = json.loads(out.getvalue())
         self.assertEqual(len(r["problems"]), 1)
+
+
+class EventsCommandTests(ReportTests):
+    def run_cli(self, *argv):
+        out = io.StringIO()
+        with contextlib.redirect_stdout(out):
+            code = cli.main(["--db", str(self.db), *argv])
+        return code, json.loads(out.getvalue())
+
+    def test_events_for_one_app_newest_first(self):
+        code, r = self.run_cli("events", "com.anthropic.claude-code", "--since", "all", "--compact")
+        self.assertEqual(code, 0)
+        automation = [e for e in r["events"] if e["service"] == "kTCCServiceAppleEvents"]
+        self.assertEqual([(e["target_id"], e["outcome"]) for e in automation],
+                         [("com.apple.Safari", "denied"), ("com.apple.finder", "allowed")])
+        e = automation[0]
+        self.assertEqual(e["service_name"], "Automation")
+        self.assertIs(e["prompted"], False)
+        self.assertIsInstance(e["id"], int)
+        times = [e["ts_start"] for e in r["events"]]
+        self.assertEqual(times, sorted(times, reverse=True))
+
+    def test_exact_client_match_and_limit(self):
+        _, r = self.run_cli("events", "claude", "--since", "all")
+        self.assertEqual(r["events"], [])  # no substring matching
+        _, r = self.run_cli("events", "com.anthropic.claude-code", "--since", "all", "--limit", "1")
+        self.assertEqual(len(r["events"]), 1)
 
 
 class PlatformFlagTests(unittest.TestCase):

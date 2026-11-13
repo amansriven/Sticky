@@ -163,6 +163,7 @@ class RuleTests(unittest.TestCase):
         self.assertIn("off and on isn't enough", f.fix[0])
         self.assertIn("tccutil reset Accessibility", f.fix[1])
         self.assertIn("stable identity", f.fix[2])
+        self.assertEqual(f.evidence, {"kind": "builds", "approved": ax1, "current": ax2})
 
     def test_r6_clears_after_reapproval(self):
         # After removing and re-adding, tccd saved ax2's requirement (status 0).
