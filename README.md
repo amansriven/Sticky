@@ -45,6 +45,19 @@ Sticky records that log quietly in the background and turns it into a plain-Engl
 
 ## Install
 
+**The Mac app**, with the command line:
+
+```bash
+brew install amansriven/tap/sticky amansriven/tap/sticky-app
+```
+
+Open Sticky and click **Start Recording**.
+
+> [!IMPORTANT]
+> Sticky isn't notarized by Apple yet, so macOS blocks it the first time you open it. Click **Done**, then go to **System Settings → Privacy & Security** and click **Open Anyway**. You only do this once. If you'd rather not, [build it from source](#the-mac-app).
+
+**Command line only:**
+
 ```bash
 brew install amansriven/tap/sticky
 ```
@@ -53,7 +66,7 @@ brew install amansriven/tap/sticky
 sticky install-agent
 ```
 
-The second command starts recording in the background. It runs as you, with no `sudo` and no Full Disk Access. Sticky can only explain requests it saw, so start it before the next time something goes wrong.
+Recording runs in the background as you, with no `sudo` and no Full Disk Access. Sticky can only explain requests it saw, so start it before the next time something goes wrong.
 
 ## What Sticky finds
 
@@ -85,16 +98,13 @@ A native SwiftUI app with a window, a menu bar item and notifications:
 - **Notifications:** about 10 seconds after an app silently loses a permission. Click one to open the app's page.
 - **Settings:** open at login, Dock icon, notifications, history and ignored alerts.
 
-It's built from source for now and needs only the Xcode command-line tools:
+Install it with Homebrew ([above](#install)), or download the zip from the [latest release](https://github.com/amansriven/Sticky/releases/latest); the zip needs the `sticky` formula too. To build it yourself, you need only the Xcode command-line tools:
 
 ```bash
 app/build.sh && open app/build/Sticky.app
 ```
 
 <br clear="right">
-
-> [!NOTE]
-> The app is ad-hoc signed for local use. A signed, notarized download is planned.
 
 ## Command line
 
@@ -150,10 +160,14 @@ sticky uninstall-agent
 ```
 
 ```bash
+brew uninstall --cask sticky-app
+```
+
+```bash
 brew uninstall sticky
 ```
 
-To delete recorded data too, remove `~/Library/Application Support/Sticky` and `~/Library/Logs/Sticky`.
+To delete recorded data too, remove `~/Library/Application Support/Sticky` and `~/Library/Logs/Sticky`, or uninstall the app with `brew uninstall --cask --zap sticky-app`, which also stops the recorder.
 
 </details>
 
@@ -184,7 +198,8 @@ The last one renders every page of the app, light and dark, to PNGs. Set `STICKY
 | `tools/brokentool/` | A deliberately fragile, ad-hoc signed test app (`build.sh TAG`, then `run.sh` or `run.sh ax`) |
 | `tests/fixtures/` | Real, anonymized permission logs from macOS 27.2.1 |
 | `scripts/` | `sticky-dev` runs this checkout; `frame-screenshot.swift` frames README screenshots |
-| `packaging/homebrew/` | The Homebrew formula (published in [amansriven/homebrew-tap](https://github.com/amansriven/homebrew-tap)) |
+| `packaging/homebrew/` | The Homebrew formula and the app's cask (published in [amansriven/homebrew-tap](https://github.com/amansriven/homebrew-tap)) |
+| `app/release.sh` | Builds the release zip: unsigned, or signed and notarized when given a Developer ID |
 | `sticky-design.md` | Architecture, every experiment and its results, and what's next |
 
 Recording your own log, for new fixtures:
