@@ -72,7 +72,10 @@ Every finding comes with steps and a button for the exact System Settings page, 
 
 ## The Mac app
 
-<img align="right" width="300" src="docs/images/menu.png" alt="Sticky's menu bar dropdown with one problem and recently active apps">
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="docs/images/menu-dark.png">
+  <img align="right" width="300" src="docs/images/menu.png" alt="Sticky's menu bar dropdown with one problem and recently active apps">
+</picture>
 
 A native SwiftUI app with a window, a menu bar item and notifications:
 
