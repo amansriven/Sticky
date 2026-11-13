@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.3.0
+
+- **The Mac app gets a window.** Overview (status, 24-hour activity chart, what needs attention), Problems (evidence, numbered fix steps, Settings buttons), per-app pages (permissions, signing identity, day-by-day timeline), and Settings (open at login, Dock icon, notifications, history). Native grouped layouts that wrap text correctly in light and dark mode, and a new app icon: a permission switch taped ON.
+- **Ignore findings.** Ignore one once, always for an app's permission, or for a whole app, from the app or with `sticky ignore`; list and restore them with `sticky ignores` / `sticky unignore`. Ignored findings don't count as problems or send notifications. `sticky why` notes hidden findings (`--include-ignored` shows them).
+- **New:** `sticky events ID --json` (one app's decisions, for timelines). `sticky report` adds 24-hour activity for your apps, whether each app is an app or a system service, structured evidence on findings, and ignore rules. `sticky inspect --json` includes the plain-English verdict.
+- **Readable names** for over 20 more permissions, for example Passkeys, App Management and Home.
+- **Fix:** `sticky status` no longer says "Last log line: never" for up to a minute after the recorder starts.
+
 ## 0.2.0
 
 - **Menu bar app (preview):** a SwiftUI app in `app/` that shows recording status and current problems with fix buttons, and notifies you about new problems: each one once, at most three at a time, and none on first launch. Built with the command-line tools; ad-hoc signed for local use.

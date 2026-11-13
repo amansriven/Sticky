@@ -31,6 +31,20 @@ func fixtureReport() throws -> Report {
         #expect(p.key.hasPrefix("R2|com.anthropic.claude-code|"))
     }
 
+    @Test func ignoreArguments() {
+        #expect(StickyCLI.IgnoreScope.finding(key: "R2|a|b|c|d").arguments == ["ignore", "R2|a|b|c|d"])
+        #expect(StickyCLI.IgnoreScope.permission(clientId: "x", service: "kTCCServiceCamera", target: nil).arguments
+                == ["ignore", "--app", "x", "--service", "kTCCServiceCamera"])
+        #expect(StickyCLI.IgnoreScope.app(clientId: "x").arguments == ["ignore", "--app", "x"])
+    }
+
+    @Test func activityAndKinds() throws {
+        let r = try fixtureReport()
+        let a = try #require(r.activity)
+        #expect(a.hours.count == 24)
+        #expect(r.apps.first?.kind == "app")
+    }
+
     @Test func appsHavePermissionStatuses() throws {
         let app = try #require(try fixtureReport().apps.first { $0.clientId == "com.anthropic.claude-code" })
         #expect(app.status == "problem")
@@ -44,7 +58,7 @@ func fixtureReport() throws -> Report {
         let base = try #require(try fixtureReport().problems.first)
         let json = """
         {"rule":"\(base.rule)","severity":"problem","client_id":"x","service":"s","target":null,
-         "title":"T","detail":["d"],"fix":[],"when":null,"began":null,"actions":[],"key":"\(key)",
+         "title":"T","detail":["d"],"fix":[],"when":null,"began":null,"actions":[],"key":"\(key)","evidence":null,"ignored_by":null,
          "app_name":"App","app_path":null,"service_name":"S","label":"L"}
         """
         return try Report.decoder.decode(Problem.self, from: Data(json.utf8))
@@ -128,5 +142,46 @@ func fixtureReport() throws -> Report {
         #expect(StickyTime.ago("2026-11-11 09:00:00.000", now: now) == "60m ago")
         #expect(StickyTime.ago("2026-11-09 10:00:00.000", now: now) == "2d ago")
         #expect(StickyTime.ago(nil, now: now) == "never")
+    }
+}
+
+func fixture<T: Decodable>(_ name: String, as type: T.Type) throws -> T {
+    let url = try #require(Bundle.module.url(forResource: name, withExtension: "json", subdirectory: "Fixtures"))
+    return try Report.decoder.decode(T.self, from: Data(contentsOf: url))
+}
+
+@Suite struct DetailDecodingTests {
+    @Test func decodesRealTimeline() throws {
+        let r = try fixture("events", as: EventsResponse.self)
+        #expect(r.clientId == "com.anthropic.claude-code")
+        let automation = r.events.filter { $0.service == "kTCCServiceAppleEvents" }
+        #expect(automation.map(\.permissionLabel) == ["Automation → com.apple.Safari", "Automation → com.apple.finder"])
+        #expect(automation.map(\.outcomeLabel) == ["Denied", "Allowed"])
+        #expect(automation[1].note == "Matched the saved approval")
+        #expect(automation[0].note == "Switched off in System Settings")  // remembered denial, matched
+        #expect(Set(r.events.map(\.id)).count == r.events.count)
+    }
+
+    @Test func decodesRealIdentity() throws {
+        let i = try fixture("identity", as: AppIdentity.self)
+        #expect(i.identifier == "com.apple.TextEdit")
+        #expect(i.signKind == "apple" && i.signatureLabel == "Apple")
+        #expect(i.stable)
+        #expect(i.explanation?.contains("Apple app") == true)
+    }
+
+    @Test func outdatedStickyForEvents() async throws {
+        let dir = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+        try FileManager.default.createDirectory(at: dir, withIntermediateDirectories: true)
+        let fake = dir.appendingPathComponent("sticky")
+        try """
+        #!/bin/sh
+        echo "sticky: error: argument command: invalid choice: 'events'" >&2
+        exit 2
+        """.write(to: fake, atomically: true, encoding: .utf8)
+        try FileManager.default.setAttributes([.posixPermissions: 0o755], ofItemAtPath: fake.path)
+        await #expect(throws: StickyCLIError.outdated) {
+            _ = try await StickyCLI.events(executable: fake.path, clientId: "x")
+        }
     }
 }

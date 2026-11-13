@@ -401,3 +401,37 @@ Week 2's open item ("run it for 24 h as a LaunchAgent, including sleep and wake"
 On a copy of the real database: 19,694 → 2,444 rows and 7.2 MB → 1.3 MB, with the same findings before and after.
 
 **A real finding from the run:** Pluely (`com.srikanthnani.pluely`, a third-party app) was refused the Microphone without a prompt. That's a saved "Don't Allow", probably from before Sticky was recording.
+
+## 12. The Mac app's window and ignoring (0.3.0, 2026-11-12)
+
+**Seeing the design without seeing the screen.** `StickyBar --snapshot DIR --page PAGE [--dark] [--size WxH]` draws a page offscreen, with live data, into a PNG. `app/snapshot.sh` runs every page in light and dark. That needs no Screen Recording permission. Two traps along the way:
+- The detail pane's background wasn't drawn offscreen, which gave black text on black. An explicit background fixed it, in the app too.
+- Standalone views (the menu) have no background of their own. Snapshots add one.
+
+**What the first window got wrong** (user review):
+- **Text was covered:** side-by-side cards mis-measured wrapped text, and Identity disappeared under Timeline.
+- **The look was busy:** too many boxes, pills and sizes, and duplicate timeline rows.
+- **The icon was generic** (a shield with a lock).
+
+**What fixed it:**
+- Pages are native grouped forms (`Form` with `.grouped` style), as System Settings uses: consistent spacing, correct wrapping, light and dark handled by the system.
+- Each finding is one section: title and Ignore, evidence ("Approved build ✗ This build"), explanation, numbered fix steps, buttons.
+- Identical decisions in the same second collapse into one timeline row (×2).
+- Renders checked at 900, 1000 and 1400 points wide.
+
+**Ignoring.**
+- **Scopes:** a finding can be ignored *once* (by its key, which includes when the problem began, so a new occurrence is reported again), *for an app's permission* (that permission and target), or *for an app*.
+- **Storage:** rules live in the engine (`ignores` table), so the app, notifications, `sticky report` and `sticky why` all agree.
+- **Effect:** ignored findings don't affect an app's status, aren't problems, and don't notify. The report lists every rule with how many findings it hides, for Restore.
+
+**Icon.** Three concepts on the idea "a permission switch that stays on" (`app/icon/concepts.swift`):
+- A: taped switch;
+- B: switch on a sticky note;
+- C: pinned switch.
+
+The user chose A: a green macOS switch held ON with masking tape, on a dark squircle. `make-icon.swift` draws it as vector shapes at every size.
+
+**Known gaps:**
+- Apps with the same name but different bundle ids (e.g. OneDrive and its helper) appear twice.
+- The menu bar icon is still a shield symbol.
+- The app is built from source and ad-hoc signed; a Developer ID-signed, notarized download is still to do.

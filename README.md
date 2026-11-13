@@ -44,7 +44,9 @@ Sticky can only explain requests made while it's recording, so install the agent
 | `sticky inspect PATH\|BUNDLE-ID` | Show an app's signing identity and whether its permissions will survive updates |
 | `sticky log` | Timeline of decisions: `--since 2h`, `--client`, `--service`, `--outcome denied`, `--json` |
 | `sticky status` | Is the recorder running? When did it last see a log line? |
-| `sticky report --json` | Recorder health and every finding as JSON (what the menu bar app reads) |
+| `sticky ignore …` | Stop reporting a finding: once (`sticky ignore KEY`), for one of an app's permissions (`--app ID --service Microphone`), or for a whole app (`--app ID`) |
+| `sticky ignores` / `sticky unignore ID` | List ignore rules, or remove one |
+| `sticky report --json` / `sticky events ID --json` | Health and findings, or one app's decisions, as JSON (what the Mac app reads) |
 | `sticky install-agent` | Record in the background from login (`--dry-run` prints the LaunchAgent and changes nothing) |
 | `sticky uninstall-agent` | Stop recording and remove the agent; recorded data is kept |
 | `sticky record` | Record in the foreground (Ctrl+C to stop) |
@@ -66,11 +68,19 @@ Each finding names the System Settings page to open, or the `tccutil` command th
 
 Sticky doesn't flag refusals that are simply the default: permissions like Full Disk Access that were never switched on, or Apple's own background services, which macOS never lets ask.
 
-## Menu bar app (preview)
+Not every finding needs action. You can ignore one once, always for that app's permission, or for the whole app; ignored findings stop appearing as problems and stop sending notifications, and you can restore them any time.
 
-`app/` holds a SwiftUI menu bar app. It shows recording status and current problems with one-click fixes, and notifies you when a new problem appears. For example, about 10 seconds after an app silently loses Accessibility, you get "BrokenTool: Switched on, but not for this build".
+## The Mac app (preview)
 
-It runs `sticky report` (Sticky 0.2.0 or later), so all the diagnosis logic stays in one place. For now, build it from this repository; it needs only the Xcode command-line tools:
+`app/` holds a native SwiftUI app with a window, a menu bar item and notifications:
+
+- **Overview:** whether anything needs attention, recording status, and your apps' permission decisions over the last 24 hours.
+- **Problems:** each one with the evidence (for example, "Approved build c1296205 ✗ This build affe388e"), numbered fix steps, buttons that open the right System Settings page, and **Ignore**.
+- **App pages:** every permission the app asked for, its signing identity and whether permissions will survive updates, and a day-by-day timeline of decisions.
+- **Notifications:** about 10 seconds after an app silently loses a permission, you get "BrokenTool: Switched on, but not for this build". Clicking it opens the app's page.
+- **Settings:** open at login, show in the Dock, notifications, history, ignored alerts, and the recorder.
+
+It runs `sticky report` and `sticky events` (Sticky 0.3.0 or later), so all the diagnosis logic stays in one place. For now, build it from this repository; it needs only the Xcode command-line tools:
 
 ```bash
 app/build.sh
@@ -136,9 +146,10 @@ Use the full path, `/usr/bin/log`: in zsh, plain `log` is a built-in command. Pr
 | `src/sticky/agent.py` | Installs the recorder as a LaunchAgent |
 | `src/sticky/identity.py` | Reads an app's signing identity with `codesign` |
 | `src/sticky/diagnose.py` | Diagnosis rules R1–R7 |
-| `src/sticky/report.py` | `sticky report`: health and findings as JSON for the app |
+| `src/sticky/report.py` | `sticky report`: health, findings, 24-hour activity and ignore rules as JSON for the app |
 | `src/sticky/cli.py` | The `sticky` command |
-| `app/` | The SwiftUI menu bar app (`StickyCore`: models, CLI bridge, notification planning; `StickyBar`: UI). Test with `cd app && swift test` |
+| `app/` | The SwiftUI app. `StickyCore`: models, CLI bridge, notification planning; `StickyBar`: window, menu, settings. `app/test.sh` runs its tests; `app/snapshot.sh DIR` renders every page, light and dark, to PNGs for design review |
+| `app/icon/` | `make-icon.swift` draws the app icon (a permission switch taped ON) at every size; `concepts.swift` draws the alternatives that were considered |
 | `scripts/sticky-dev` | Runs `sticky` from this checkout (for the app, or without installing) |
 | `tools/brokentool/` | A deliberately fragile ad-hoc signed app for testing (`build.sh [tag]`, then `run.sh` for Automation or `run.sh ax` for Accessibility) |
 | `tests/fixtures/` | Real logs recorded on macOS 27.2.1, anonymized |

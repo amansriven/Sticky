@@ -8,6 +8,10 @@ public struct Report: Decodable, Sendable {
     public let since: String?
     public let recorder: RecorderHealth
     public let problems: [Problem]
+    /// Decisions per hour for your apps (not system services), last 24 hours.
+    public let activity: Activity?
+    /// Ignore rules the user set, with how many findings each hides now.
+    public let ignored: [IgnoreRule]?
     public let apps: [AppSummary]
 
     public static var decoder: JSONDecoder {
@@ -41,6 +45,63 @@ public struct RecorderHealth: Decodable, Sendable {
     public var isRecording: Bool { state == "running" }
 }
 
+public struct Activity: Decodable, Sendable, Hashable {
+    public let hours: [HourBucket]
+    public let totals: ActivityTotals
+}
+
+public struct HourBucket: Decodable, Sendable, Hashable, Identifiable {
+    /// "YYYY-MM-DD HH:00"
+    public let hour: String
+    public let allowed: Int
+    public let denied: Int
+    public let asked: Int
+    public var id: String { hour }
+    public var total: Int { allowed + denied + asked }
+}
+
+public struct ActivityTotals: Decodable, Sendable, Hashable {
+    public let allowed: Int
+    public let denied: Int
+    public let asked: Int
+    public let apps: Int
+}
+
+public struct IgnoreRule: Decodable, Sendable, Hashable, Identifiable {
+    public let id: Int
+    /// finding | permission | app
+    public let scope: String
+    public let clientId: String
+    public let service: String?
+    public let target: String?
+    public let findingKey: String?
+    public let createdAt: String
+    public let appName: String
+    public let serviceName: String?
+    public let hiding: Int
+
+    /// "Pluely · Microphone", "Claude Code · Automation → Safari", "Everything about Zoom"
+    public var description: String {
+        switch scope {
+        case "app": return "All alerts for \(appName)"
+        case "permission":
+            return "\(appName) · \(serviceName ?? "permission")" + (target.map { " → \($0)" } ?? "")
+        default:
+            return "\(appName) · \(serviceName ?? "one problem") (this time)"
+        }
+    }
+}
+
+/// What a UI can draw instead of prose: two builds, or two paths.
+public struct Evidence: Decodable, Sendable, Hashable {
+    /// builds | paths
+    public let kind: String
+    public let approved: String?
+    public let current: String?
+    public let before: String?
+    public let after: String?
+}
+
 /// A button the UI can show for a finding.
 public struct FixAction: Decodable, Sendable, Hashable {
     /// open_url | copy
@@ -63,6 +124,9 @@ public struct Finding: Decodable, Sendable, Hashable {
     public let began: String?
     public let actions: [FixAction]
     public let key: String
+    public let evidence: Evidence?
+    /// The ignore rule hiding this finding, if any.
+    public let ignoredBy: Int?
 }
 
 /// A problem finding with the app and permission it belongs to.
@@ -79,8 +143,11 @@ public struct Problem: Decodable, Sendable, Hashable, Identifiable {
     public let began: String?
     public let actions: [FixAction]
     public let key: String
+    public let evidence: Evidence?
     public let appName: String
     public let appPath: String?
+    /// app | system
+    public let appKind: String?
     public let serviceName: String
     public let label: String
 
@@ -104,6 +171,8 @@ public struct AppSummary: Decodable, Sendable, Hashable, Identifiable {
     public let clientId: String
     public let appName: String
     public let appPath: String?
+    /// app | system (Apple's own processes and daemons)
+    public let kind: String
     public let lastSeen: String
     public let status: String
     public let permissions: [Permission]

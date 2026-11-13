@@ -38,5 +38,6 @@ class Sticky < Formula
     assert_match "apple", shell_output("#{bin}/sticky inspect /System/Applications/TextEdit.app")
     ENV["STICKY_DB"] = testpath/"sticky.db"
     assert_match '"problems": []', shell_output("#{bin}/sticky report --since all")
+    assert_match "Nothing is ignored", shell_output("#{bin}/sticky ignores")
   end
 end

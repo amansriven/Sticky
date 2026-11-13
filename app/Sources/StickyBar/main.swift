@@ -1,3 +1,4 @@
+import AppKit
 import Foundation
 import StickyCore
 
@@ -27,6 +28,16 @@ if CommandLine.arguments.contains("--dump") {
     }
     done.wait()
     exit(status.code)
+} else if let i = CommandLine.arguments.firstIndex(of: "--snapshot"), i + 1 < CommandLine.arguments.count {
+    // Render every page to PNGs (see Snapshotter); no windows, no notifications.
+    let app = NSApplication.shared
+    app.setActivationPolicy(.prohibited)
+    let args = CommandLine.arguments
+    let dir = args[i + 1]
+    let dark = args.contains("--dark")
+    let page = args.firstIndex(of: "--page").flatMap { $0 + 1 < args.count ? args[$0 + 1] : nil } ?? "overview"
+    MainActor.assumeIsolated { Snapshotter.run(page: page, to: dir, dark: dark) }
+    app.run()
 } else {
     StickyBarApp.main()
 }

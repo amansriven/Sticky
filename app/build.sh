@@ -29,6 +29,8 @@ cat > "$app/Contents/Info.plist" <<PLIST
 	<string>Sticky</string>
 	<key>CFBundleExecutable</key>
 	<string>StickyBar</string>
+	<key>CFBundleIconFile</key>
+	<string>AppIcon</string>
 	<key>CFBundlePackageType</key>
 	<string>APPL</string>
 	<key>CFBundleShortVersionString</key>
@@ -38,12 +40,13 @@ cat > "$app/Contents/Info.plist" <<PLIST
 	<key>LSMinimumSystemVersion</key>
 	<string>14.0</string>
 	<key>LSUIElement</key>
-	<true/>
+	<false/>
 	<key>NSHumanReadableCopyright</key>
 	<string>MIT License</string>
 </dict>
 </plist>
 PLIST
+swift "$here/icon/make-icon.swift" "$app/Contents/Resources" >/dev/null 2>&1 || echo "warning: couldn't draw the app icon"
 # Ad-hoc signed for local use. A public build needs a Developer ID signature
 # and notarization; an ad-hoc app is exactly what Sticky's R6 warns about.
 codesign --force --sign - --identifier dev.sticky.bar "$app" 2>&1 | grep -v 'replacing existing signature' || true

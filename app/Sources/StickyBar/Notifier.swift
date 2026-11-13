@@ -6,8 +6,8 @@ import UserNotifications
 @MainActor
 final class Notifier: NSObject, UNUserNotificationCenterDelegate {
     static let shared = Notifier()
-    static let category = "STICKY_PROBLEM"
-    static let openSettings = "OPEN_SETTINGS"
+    nonisolated static let category = "STICKY_PROBLEM"
+    nonisolated static let openSettings = "OPEN_SETTINGS"
     private let defaults = UserDefaults.standard
 
     /// Notifications need a real app bundle; `swift run` has none.
@@ -37,7 +37,7 @@ final class Notifier: NSObject, UNUserNotificationCenterDelegate {
         }
     }
 
-    static let settingsURL = URL(string: "x-apple.systempreferences:com.apple.Notifications-Settings.extension")!
+    nonisolated static let settingsURL = URL(string: "x-apple.systempreferences:com.apple.Notifications-Settings.extension")!
 
     func announce(_ problems: [Problem]) {
         let firstRun = !defaults.bool(forKey: "hasAnnouncedBefore")
@@ -64,8 +64,9 @@ final class Notifier: NSObject, UNUserNotificationCenterDelegate {
         content.title = text.title
         content.body = text.body
         content.sound = .default
+        content.userInfo = ["clientId": problem.clientId]
         if let url = problem.actions.first(where: { $0.kind == "open_url" })?.value {
-            content.userInfo = ["url": url]
+            content.userInfo["url"] = url
             content.categoryIdentifier = Self.category
         }
         center.add(UNNotificationRequest(identifier: problem.key, content: content, trigger: nil))
@@ -77,13 +78,23 @@ final class Notifier: NSObject, UNUserNotificationCenterDelegate {
         [.banner, .list, .sound]
     }
 
-    /// Clicking the notification, or its "Open Settings" button, opens the
-    /// System Settings page for that permission.
+    /// Clicking the notification opens that app's page in Sticky; its
+    /// "Open Settings" button opens the System Settings page instead.
     nonisolated func userNotificationCenter(
         _ center: UNUserNotificationCenter, didReceive response: UNNotificationResponse
     ) async {
-        guard let text = response.notification.request.content.userInfo["url"] as? String,
-              let url = URL(string: text) else { return }
-        await MainActor.run { _ = NSWorkspace.shared.open(url) }
+        let info = response.notification.request.content.userInfo
+        let url = (info["url"] as? String).flatMap(URL.init(string:))
+        let clientId = info["clientId"] as? String
+        let openSettings = response.actionIdentifier == Self.openSettings
+        await MainActor.run {
+            if openSettings, let url {
+                _ = NSWorkspace.shared.open(url)
+            } else if let clientId {
+                ReportModel.shared.show(app: clientId)
+            } else if let url {
+                _ = NSWorkspace.shared.open(url)
+            }
+        }
     }
 }

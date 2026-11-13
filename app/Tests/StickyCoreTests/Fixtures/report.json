@@ -1,6 +1,6 @@
 {
- "sticky_version": "0.1.1",
- "generated_at": "2026-11-11 09:49:28.218",
+ "sticky_version": "0.2.0",
+ "generated_at": "2026-11-12 23:17:49.708",
  "since": null,
  "recorder": {
   "agent_installed": true,
@@ -8,10 +8,10 @@
   "decisions_total": 8,
   "state": "stopped",
   "stopped_reason": "log stream exited (0); restart limit reached",
-  "pid": 35689,
+  "pid": 60298,
   "run_id": 1,
-  "started_at": "2026-11-11 09:49:28.212",
-  "heartbeat": "2026-11-11 09:49:28.218",
+  "started_at": "2026-11-12 23:17:49.702",
+  "heartbeat": "2026-11-12 23:17:49.708",
   "last_record": "2026-11-11 04:40:25.430",
   "records": 330,
   "requests": 10,
@@ -48,18 +48,177 @@
      "value": "tccutil reset AppleEvents com.anthropic.claude-code"
     }
    ],
+   "evidence": null,
    "key": "R2|com.anthropic.claude-code|kTCCServiceAppleEvents|com.apple.Safari|2026-11-11 04:40:25.412",
+   "ignored_by": null,
    "app_name": "claude",
    "app_path": "/Users/user/Library/Application Support/Claude/claude-code/2.1.321/ddbdf2b334e1/claude.app",
+   "app_kind": "app",
    "service_name": "Automation",
    "label": "Automation \u2192 com.apple.Safari"
   }
  ],
+ "activity": {
+  "hours": [
+   {
+    "hour": "2026-11-12 00:00",
+    "allowed": 0,
+    "denied": 0,
+    "asked": 0
+   },
+   {
+    "hour": "2026-11-12 01:00",
+    "allowed": 0,
+    "denied": 0,
+    "asked": 0
+   },
+   {
+    "hour": "2026-11-12 02:00",
+    "allowed": 0,
+    "denied": 0,
+    "asked": 0
+   },
+   {
+    "hour": "2026-11-12 03:00",
+    "allowed": 0,
+    "denied": 0,
+    "asked": 0
+   },
+   {
+    "hour": "2026-11-12 04:00",
+    "allowed": 0,
+    "denied": 0,
+    "asked": 0
+   },
+   {
+    "hour": "2026-11-12 05:00",
+    "allowed": 0,
+    "denied": 0,
+    "asked": 0
+   },
+   {
+    "hour": "2026-11-12 06:00",
+    "allowed": 0,
+    "denied": 0,
+    "asked": 0
+   },
+   {
+    "hour": "2026-11-12 07:00",
+    "allowed": 0,
+    "denied": 0,
+    "asked": 0
+   },
+   {
+    "hour": "2026-11-12 08:00",
+    "allowed": 0,
+    "denied": 0,
+    "asked": 0
+   },
+   {
+    "hour": "2026-11-12 09:00",
+    "allowed": 0,
+    "denied": 0,
+    "asked": 0
+   },
+   {
+    "hour": "2026-11-12 10:00",
+    "allowed": 0,
+    "denied": 0,
+    "asked": 0
+   },
+   {
+    "hour": "2026-11-12 11:00",
+    "allowed": 0,
+    "denied": 0,
+    "asked": 0
+   },
+   {
+    "hour": "2026-11-12 12:00",
+    "allowed": 0,
+    "denied": 0,
+    "asked": 0
+   },
+   {
+    "hour": "2026-11-12 13:00",
+    "allowed": 0,
+    "denied": 0,
+    "asked": 0
+   },
+   {
+    "hour": "2026-11-12 14:00",
+    "allowed": 0,
+    "denied": 0,
+    "asked": 0
+   },
+   {
+    "hour": "2026-11-12 15:00",
+    "allowed": 0,
+    "denied": 0,
+    "asked": 0
+   },
+   {
+    "hour": "2026-11-12 16:00",
+    "allowed": 0,
+    "denied": 0,
+    "asked": 0
+   },
+   {
+    "hour": "2026-11-12 17:00",
+    "allowed": 0,
+    "denied": 0,
+    "asked": 0
+   },
+   {
+    "hour": "2026-11-12 18:00",
+    "allowed": 0,
+    "denied": 0,
+    "asked": 0
+   },
+   {
+    "hour": "2026-11-12 19:00",
+    "allowed": 0,
+    "denied": 0,
+    "asked": 0
+   },
+   {
+    "hour": "2026-11-12 20:00",
+    "allowed": 0,
+    "denied": 0,
+    "asked": 0
+   },
+   {
+    "hour": "2026-11-12 21:00",
+    "allowed": 0,
+    "denied": 0,
+    "asked": 0
+   },
+   {
+    "hour": "2026-11-12 22:00",
+    "allowed": 0,
+    "denied": 0,
+    "asked": 0
+   },
+   {
+    "hour": "2026-11-12 23:00",
+    "allowed": 0,
+    "denied": 0,
+    "asked": 0
+   }
+  ],
+  "totals": {
+   "allowed": 0,
+   "denied": 0,
+   "asked": 0,
+   "apps": 0
+  }
+ },
+ "ignored": [],
  "apps": [
   {
    "client_id": "com.anthropic.claude-code",
    "app_name": "claude",
    "app_path": "/Users/user/Library/Application Support/Claude/claude-code/2.1.321/ddbdf2b334e1/claude.app",
+   "kind": "app",
    "last_seen": "2026-11-11 04:40:25.412",
    "permissions": [
     {
@@ -101,7 +260,9 @@
          "value": "tccutil reset AppleEvents com.anthropic.claude-code"
         }
        ],
-       "key": "R2|com.anthropic.claude-code|kTCCServiceAppleEvents|com.apple.Safari|2026-11-11 04:40:25.412"
+       "evidence": null,
+       "key": "R2|com.anthropic.claude-code|kTCCServiceAppleEvents|com.apple.Safari|2026-11-11 04:40:25.412",
+       "ignored_by": null
       }
      ]
     },
@@ -129,7 +290,9 @@
        "when": "2026-11-11 04:40:21.269",
        "began": null,
        "actions": [],
-       "key": "OK|com.anthropic.claude-code|kTCCServiceAppleEvents|com.apple.finder|2026-11-11 04:40:21.269"
+       "evidence": null,
+       "key": "OK|com.anthropic.claude-code|kTCCServiceAppleEvents|com.apple.finder|2026-11-11 04:40:21.269",
+       "ignored_by": null
       }
      ]
     }

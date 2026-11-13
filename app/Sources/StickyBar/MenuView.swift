@@ -2,77 +2,83 @@ import AppKit
 import StickyCore
 import SwiftUI
 
+/// The menu bar dropdown: a glance at what's wrong, and a way into the window.
 struct MenuView: View {
     @ObservedObject var model: ReportModel
+    @Environment(\.openWindow) private var openWindow
 
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
             header
-            if model.notificationsAllowed == false {
+            if model.notificationsAllowed == false && model.settings.notificationsEnabled {
                 notificationsOff
             }
-            Divider()
             content
-            if let apps = model.report?.apps, !apps.isEmpty {
-                Divider()
-                recentApps(apps)
+            if let apps = model.report?.apps {
+                let yours = apps.filter { !$0.isSystem && !stickyOwnBundleIDs.contains($0.clientId) }
+                if !yours.isEmpty {
+                    Divider()
+                    recentApps(Array(yours.prefix(4)))
+                }
             }
             Divider()
             footer
         }
-        .padding(14)
-        .frame(width: 380)
+        .padding(16)
+        .frame(width: 360)
+    }
+
+    private func openWindow(selecting item: SidebarItem? = nil) {
+        if let item { model.selection = item }
+        openWindow(id: MainWindowID.value)
+        NSApp.activate(ignoringOtherApps: true)
     }
 
     // MARK: Header
 
     private var header: some View {
         HStack(spacing: 10) {
-            Image(systemName: model.menuBarSymbol)
-                .font(.title2)
-                .foregroundStyle(headerColor)
+            Image(nsImage: NSApp.applicationIconImage).resizable().frame(width: 34, height: 34)
             VStack(alignment: .leading, spacing: 2) {
                 Text("Sticky").font(.headline)
-                Text(statusLine).font(.caption).foregroundStyle(.secondary)
-                    .fixedSize(horizontal: false, vertical: true)
+                HStack(spacing: 5) {
+                    Circle().fill(statusColor).frame(width: 7, height: 7)
+                    Text(statusLine).font(.caption).foregroundStyle(.secondary)
+                        .fixedSize(horizontal: false, vertical: true)
+                }
             }
+            Spacer()
         }
     }
 
-    private var headerColor: Color {
-        guard let r = model.report else { return .secondary }
-        if !r.problems.isEmpty { return .orange }
-        return r.recorder.isRecording ? .green : .red
+    private var statusColor: Color {
+        guard let h = model.report?.recorder else { return .secondary }
+        switch h.state {
+        case "running": return Theme.ok
+        case "stale": return Theme.problem
+        default: return Theme.denied
+        }
     }
 
     private var statusLine: String {
-        guard let r = model.report else {
-            return model.errorMessage ?? "Loading…"
-        }
+        guard let r = model.report else { return model.errorMessage == nil ? "Loading…" : "Can't reach the engine" }
         let h = r.recorder
         switch h.state {
-        case "running":
-            return "Recording · last log line \(StickyTime.ago(h.lastRecord))"
-        case "stale":
-            return "The recorder isn't responding · last heartbeat \(StickyTime.ago(h.heartbeat))"
-        case "stopped" where !h.agentLoaded:
-            return "Not recording. Run `sticky install-agent` in Terminal."
-        case "stopped":
-            return "Not recording: \(h.stoppedReason ?? "stopped")"
-        default:
-            return "Not recording yet. Run `sticky install-agent` in Terminal."
+        case "running": return "Recording · last activity \(StickyTime.ago(h.lastRecord))"
+        case "stale": return "Recorder not responding"
+        default: return "Not recording"
         }
     }
 
     private var notificationsOff: some View {
         HStack(spacing: 8) {
-            Image(systemName: "bell.slash").foregroundStyle(.orange)
-            Text("Notifications are off, so you won't hear about new problems.")
-                .font(.caption).fixedSize(horizontal: false, vertical: true)
+            Image(systemName: "bell.slash.fill").foregroundStyle(Theme.problem)
+            Text("Notifications are off").font(.caption)
             Spacer()
-            Button("Turn on") { NSWorkspace.shared.open(Notifier.settingsURL) }
-                .controlSize(.small)
+            Button("Turn on") { NSWorkspace.shared.open(Notifier.settingsURL) }.controlSize(.small)
         }
+        .padding(8)
+        .background(RoundedRectangle(cornerRadius: 8).fill(Theme.problem.opacity(0.10)))
     }
 
     // MARK: Problems
@@ -89,26 +95,35 @@ struct MenuView: View {
                 }
             }
         } else if let r = model.report {
-            if r.problems.isEmpty {
-                VStack(alignment: .leading, spacing: 4) {
-                    Label("No permission problems found", systemImage: "checkmark.circle.fill")
-                        .foregroundStyle(.green)
-                    Text("\(r.apps.count) apps and \(r.recorder.decisionsTotal) decisions recorded.")
-                        .font(.caption).foregroundStyle(.secondary)
+            if !r.recorder.isRecording {
+                HStack {
+                    Label("Sticky isn't recording", systemImage: "pause.circle.fill").foregroundStyle(Theme.denied)
+                    Spacer()
+                    Button("Start") { model.installAgent() }.controlSize(.small)
                 }
-            } else {
-                Text(r.problems.count == 1 ? "1 permission problem" : "\(r.problems.count) permission problems")
-                    .font(.subheadline.weight(.semibold))
-                ScrollView {
-                    VStack(alignment: .leading, spacing: 8) {
-                        ForEach(r.problems) { problem in
-                            ProblemRow(problem: problem,
-                                       expanded: model.expanded.contains(problem.key),
-                                       toggle: { model.toggleExpanded(problem.key) })
-                        }
+            }
+            if r.problems.isEmpty {
+                HStack(spacing: 10) {
+                    Image(systemName: "checkmark.seal.fill").font(.title2).foregroundStyle(Theme.ok)
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text("All permissions are working").font(.callout.weight(.semibold))
+                        Text("\(r.activity?.totals.apps ?? r.apps.count) apps asked for access today")
+                            .font(.caption).foregroundStyle(.secondary)
                     }
                 }
-                .frame(maxHeight: 360)
+                .padding(.vertical, 4)
+            } else {
+                VStack(alignment: .leading, spacing: 6) {
+                    Text(r.problems.count == 1 ? "1 problem" : "\(r.problems.count) problems")
+                        .font(.caption.weight(.semibold)).foregroundStyle(.secondary)
+                    ForEach(r.problems.prefix(4)) { p in
+                        ProblemRow(problem: p, open: { openWindow(selecting: .app(p.clientId)) })
+                    }
+                    if r.problems.count > 4 {
+                        Button("Show all \(r.problems.count) problems…") { openWindow(selecting: .problems) }
+                            .buttonStyle(.link).font(.caption)
+                    }
+                }
             }
         } else {
             ProgressView().controlSize(.small)
@@ -120,106 +135,67 @@ struct MenuView: View {
     private func recentApps(_ apps: [AppSummary]) -> some View {
         VStack(alignment: .leading, spacing: 6) {
             Text("Recently active").font(.caption.weight(.semibold)).foregroundStyle(.secondary)
-            ForEach(apps.prefix(5)) { app in
-                HStack(spacing: 8) {
-                    Circle().fill(color(for: app.status)).frame(width: 7, height: 7)
-                    Text(app.appName).font(.callout).lineLimit(1)
-                    Spacer()
-                    Text(StickyTime.ago(app.lastSeen)).font(.caption).foregroundStyle(.secondary)
+            ForEach(apps) { app in
+                Button { openWindow(selecting: .app(app.clientId)) } label: {
+                    HStack(spacing: 8) {
+                        AppIcon(path: app.appPath, size: 20)
+                        Text(app.appName).lineLimit(1)
+                        Text(app.permissionSummary).font(.caption).foregroundStyle(.secondary).lineLimit(1)
+                        Spacer()
+                        Text(StickyTime.ago(app.lastSeen)).font(.caption).foregroundStyle(.tertiary)
+                    }
+                    .contentShape(Rectangle())
                 }
-                .help(app.permissions.map(\.label).joined(separator: ", "))
+                .buttonStyle(.plain)
             }
-        }
-    }
-
-    private func color(for status: String) -> Color {
-        switch status {
-        case "problem": return .orange
-        case "info": return .blue
-        case "ok": return .green
-        default: return .secondary
         }
     }
 
     // MARK: Footer
 
     private var footer: some View {
-        HStack {
-            Button("Refresh") { model.refresh() }
+        HStack(spacing: 8) {
+            Button { openWindow() } label: { Text("Open Sticky").frame(maxWidth: .infinity) }
+                .buttonStyle(.borderedProminent)
+                .keyboardShortcut("o")
+            SettingsLink { Image(systemName: "gearshape") }
+                .help("Settings")
+            Button { model.refresh() } label: { Image(systemName: "arrow.clockwise") }
                 .disabled(model.isRefreshing)
-            if model.isRefreshing { ProgressView().controlSize(.small) }
-            Spacer()
-            if let last = model.lastRefresh {
-                Text("Updated \(last, style: .relative) ago").font(.caption).foregroundStyle(.secondary)
-            }
-            Button("Quit") { NSApp.terminate(nil) }
+                .help("Refresh")
+            Button { NSApp.terminate(nil) } label: { Image(systemName: "power") }
+                .help("Quit Sticky")
         }
     }
 }
 
 struct ProblemRow: View {
     let problem: Problem
-    // Kept in ReportModel, not @State: in the macOS 27 SDK @State is a macro
-    // whose plugin ships only with Xcode, and this builds with the
-    // command-line tools alone.
-    let expanded: Bool
-    let toggle: () -> Void
+    let open: () -> Void
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 6) {
-            Button {
-                withAnimation(.easeInOut(duration: 0.15)) { toggle() }
-            } label: {
-                HStack(alignment: .top, spacing: 8) {
-                    Image(systemName: "exclamationmark.triangle.fill").foregroundStyle(.orange)
-                    VStack(alignment: .leading, spacing: 2) {
-                        Text(problem.title).font(.callout.weight(.semibold))
-                        Text("\(problem.appName) · \(problem.label)")
-                            .font(.caption).foregroundStyle(.secondary).lineLimit(2)
+        HStack(spacing: 10) {
+            Button(action: open) {
+                HStack(spacing: 10) {
+                    AppIcon(path: problem.appPath, size: 28)
+                    VStack(alignment: .leading, spacing: 1) {
+                        Text(problem.appName).font(.callout.weight(.semibold))
+                        Text("\(problem.title) · \(problem.serviceName)")
+                            .font(.caption).foregroundStyle(.secondary).lineLimit(1)
                     }
-                    Spacer()
-                    Image(systemName: expanded ? "chevron.up" : "chevron.down")
-                        .font(.caption).foregroundStyle(.secondary)
+                    Spacer(minLength: 4)
                 }
                 .contentShape(Rectangle())
             }
             .buttonStyle(.plain)
-
-            if expanded {
-                VStack(alignment: .leading, spacing: 4) {
-                    ForEach(problem.detail, id: \.self) { line in
-                        Text(line).font(.caption).fixedSize(horizontal: false, vertical: true)
-                    }
-                    ForEach(problem.fix, id: \.self) { line in
-                        Text("Fix: \(line)").font(.caption).foregroundStyle(.secondary)
-                            .fixedSize(horizontal: false, vertical: true)
-                    }
-                    if !problem.actions.isEmpty {
-                        HStack {
-                            ForEach(problem.actions, id: \.self) { action in
-                                Button(action.label) { perform(action) }.controlSize(.small)
-                            }
-                        }
-                        .padding(.top, 2)
-                    }
-                }
-                .padding(.leading, 24)
-                .textSelection(.enabled)
+            if let fix = problem.actions.first(where: { $0.kind == "open_url" }) {
+                Button("Fix") { perform(fix) }
+                    .controlSize(.small)
+                    .help(fix.label)
             }
         }
         .padding(8)
-        .background(RoundedRectangle(cornerRadius: 8).fill(Color.secondary.opacity(0.08)))
-    }
-
-    private func perform(_ action: FixAction) {
-        switch action.kind {
-        case "open_url":
-            if let url = URL(string: action.value) { NSWorkspace.shared.open(url) }
-        case "copy":
-            copy(action.value)
-        default:
-            break
-        }
+        .background(RoundedRectangle(cornerRadius: 8).fill(Theme.problem.opacity(0.08)))
     }
 }
 
