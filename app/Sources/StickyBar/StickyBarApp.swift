@@ -37,8 +37,8 @@ struct MenuBarLabel: View {
     @Environment(\.openWindow) private var openWindow
 
     var body: some View {
-        Image(systemName: model.menuBarSymbol)
-            .accessibilityLabel("Sticky")
+        Image(nsImage: model.menuBarIcon.image())
+            .accessibilityLabel(model.menuBarIcon.accessibilityLabel)
             .onAppear {
                 model.openMainWindow = {
                     openWindow(id: MainWindowID.value)

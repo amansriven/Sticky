@@ -1,5 +1,12 @@
 # Changelog
 
+## Unreleased
+
+- **New menu bar icon:** the app icon's taped-on switch instead of a shield. On and taped while recording, a dot when something needs attention, and switched off when Sticky isn't recording.
+- **Fix:** apps that share a name are told apart: "OneDrive" and "OneDrive (FileProvider)" instead of two "OneDrive" rows. A daemon seen both by bundle id and by path shows "(by path)" on the second.
+- **Fix:** System Settings extensions and XPC services are named from their own bundle ("PowerPreferences"), not "extension".
+- **Fix:** apps that hide their name with an invisible character are named after their bundle instead of showing a blank row.
+
 ## 0.3.0
 
 - **The Mac app gets a window.** Overview (status, 24-hour activity chart, what needs attention), Problems (evidence, numbered fix steps, Settings buttons), per-app pages (permissions, signing identity, day-by-day timeline), and Settings (open at login, Dock icon, notifications, history). Native grouped layouts that wrap text correctly in light and dark mode, and a new app icon: a permission switch taped ON.

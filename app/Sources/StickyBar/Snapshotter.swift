@@ -34,6 +34,8 @@ enum Snapshotter {
             model.refresh()
             await waitUntil { !model.isRefreshing && (model.report != nil || model.errorMessage != nil) }
             switch page {
+            case "menubar-icon":
+                render(MenuBarIconSheet(), size: CGSize(width: 0, height: 0), to: path)
             case "menu":
                 render(MenuView(model: model), size: CGSize(width: 360, height: 0), to: path)
             case "settings":
@@ -71,7 +73,10 @@ enum Snapshotter {
         // so prominent buttons would come out gray), and size to fit if asked.
         let content = view.environment(\.controlActiveState, .key).background(Theme.pageFill)
         let host: NSHostingView<AnyView>
-        if size.height == 0 {
+        if size.width == 0 {
+            host = NSHostingView(rootView: AnyView(content))
+            host.frame = CGRect(origin: .zero, size: host.fittingSize)
+        } else if size.height == 0 {
             host = NSHostingView(rootView: AnyView(content.frame(width: size.width)))
             let fit = host.fittingSize
             host.frame = CGRect(origin: .zero, size: CGSize(width: size.width, height: fit.height))
@@ -99,5 +104,23 @@ extension View {
     /// AppKit in a way offscreen capture doesn't see (it renders black).
     @ViewBuilder func selectableText() -> some View {
         if Snapshotter.isActive { self } else { textSelection(.enabled) }
+    }
+}
+
+/// Every menu bar icon state at 1x and enlarged, for review (`--page menubar-icon`).
+private struct MenuBarIconSheet: View {
+    var body: some View {
+        VStack(alignment: .leading, spacing: 18) {
+            ForEach(MenuBarIcon.allCases, id: \.self) { state in
+                HStack(spacing: 24) {
+                    Text(state.rawValue).frame(width: 80, alignment: .leading)
+                    Image(nsImage: state.image()).renderingMode(.template)
+                    Image(nsImage: state.image()).renderingMode(.template).resizable().interpolation(.high)
+                        .frame(width: MenuBarIcon.size.width * 8, height: MenuBarIcon.size.height * 8)
+                }
+            }
+        }
+        .foregroundStyle(.primary)
+        .padding(24)
     }
 }

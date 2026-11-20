@@ -99,6 +99,49 @@ class ReportTests(unittest.TestCase):
         self.assertEqual(app_name("com.example.Tool", None, "tool"), "tool")
         self.assertEqual(app_name("com.example.Tool", None), "Tool")
 
+    def test_app_name_reads_the_innermost_bundle(self):
+        # An extension's executable path names the extension, not "extension"
+        # (the last part of its bundle id).
+        appex = Path(self.tmp.name) / "Power.appex"
+        (appex / "Contents" / "MacOS").mkdir(parents=True)
+        with open(appex / "Contents" / "Info.plist", "wb") as f:
+            import plistlib
+            plistlib.dump({"CFBundleDisplayName": "PowerPreferences"}, f)
+        exe = str(appex / "Contents" / "MacOS" / "Power")
+        self.assertEqual(app_name("com.apple.Battery-Settings.extension", exe), "PowerPreferences")
+        self.assertEqual(app_name("com.x.Thing.extension", "/nonexistent/Thing.appex"), "Thing")
+
+    def test_blank_bundle_names_fall_back(self):
+        # Some apps hide their name with a blank Braille pattern (U+2800).
+        app = Path(self.tmp.name) / "Hidden.app"
+        (app / "Contents").mkdir(parents=True)
+        with open(app / "Contents" / "Info.plist", "wb") as f:
+            import plistlib
+            plistlib.dump({"CFBundleDisplayName": "\u2800", "CFBundleName": " \u200b"}, f)
+        self.assertEqual(app_name("org.example.Hidden", str(app)), "Hidden")
+
+    def test_disambiguate_same_names(self):
+        from sticky.report import disambiguate
+
+        def names(*pairs):
+            apps = [{"client_id": c, "app_name": n} for c, n in pairs]
+            disambiguate(apps)
+            return [a["app_name"] for a in apps]
+
+        # The main app keeps its name; the helper gets what sets it apart.
+        self.assertEqual(names(("com.microsoft.OneDrive.FileProvider", "OneDrive"),
+                               ("com.microsoft.OneDrive", "OneDrive")),
+                         ["OneDrive (FileProvider)", "OneDrive"])
+        # Bundle id case differences don't count; a tail equal to the name is dropped.
+        self.assertEqual(names(("com.apple.XProtectFramework.XProtect", "XProtect"),
+                               ("com.apple.XprotectFramework.PluginService", "XProtect")),
+                         ["XProtect", "XProtect (PluginService)"])
+        # The same daemon seen by bundle id and by path.
+        self.assertEqual(names(("com.apple.flow.flowd", "flowd"), ("/usr/libexec/flowd", "flowd")),
+                         ["flowd", "flowd (by path)"])
+        # Unique names are untouched.
+        self.assertEqual(names(("com.a.One", "One"), ("com.b.Two", "Two")), ["One", "Two"])
+
     def test_cli_outputs_json(self):
         out = io.StringIO()
         with contextlib.redirect_stdout(out):

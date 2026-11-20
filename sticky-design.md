@@ -432,6 +432,6 @@ On a copy of the real database: 19,694 → 2,444 rows and 7.2 MB → 1.3 MB, wit
 The user chose A: a green macOS switch held ON with masking tape, on a dark squircle. `make-icon.swift` draws it as vector shapes at every size.
 
 **Known gaps:**
-- Apps with the same name but different bundle ids (e.g. OneDrive and its helper) appear twice.
-- The menu bar icon is still a shield symbol.
+- ~~Apps with the same name but different bundle ids (e.g. OneDrive and its helper) appear twice.~~ Fixed after 0.3.0: `report.disambiguate` adds what sets each id apart ("OneDrive (FileProvider)"). The real data had more cases than expected: 13 System Settings extensions were all named "extension" (naming only read `.app` Info.plists; it now reads the innermost `.app`, `.appex` or `.xpc`), and one app hid its name with U+2800.
+- ~~The menu bar icon is still a shield symbol.~~ Fixed after 0.3.0: a template image of the taped switch (`MenuBarIcon.swift`), with states for recording, problem (badge), stopped (switch off) and error. `StickyBar --snapshot DIR --page menubar-icon` renders them all.
 - The app is built from source and ad-hoc signed; a Developer ID-signed, notarized download is still to do.

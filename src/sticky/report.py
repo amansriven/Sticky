@@ -61,23 +61,101 @@ def recorder_health(store: Store, agent_installed: bool, agent_loaded: bool) -> 
     return health
 
 
+BUNDLE_SUFFIXES = (".app", ".appex", ".xpc")
+
+
+def bundle_for(path: str) -> Path:
+    """The innermost app, extension or XPC bundle containing ``path``.
+
+    Unlike ``identity.code_path_for`` (which wants the outer .app, whose
+    signature covers everything inside), naming wants the closest bundle:
+    a System Settings extension is "PowerPreferences", not "extension".
+    """
+    p = Path(path)
+    for parent in (p, *p.parents):
+        if parent.suffix in BUNDLE_SUFFIXES:
+            return parent
+    return code_path_for(path)
+
+
+def visible(name) -> bool:
+    """False for names with nothing to see, like the blank Braille pattern
+    (U+2800) some apps use to hide their name."""
+    import unicodedata
+    return isinstance(name, str) and any(
+        not (c.isspace() or c == "\u2800" or unicodedata.category(c) in ("Cf", "Zs", "Mn"))
+        for c in name)
+
+
 def app_name(client_id: str, path: str | None, fallback: str | None = None) -> str:
     """A display name from the app's Info.plist (cheap: no codesign)."""
     if path:
-        info = code_path_for(path) / "Contents" / "Info.plist"
+        info = bundle_for(path) / "Contents" / "Info.plist"
         try:
             with open(info, "rb") as f:
                 plist = plistlib.load(f)
-            name = plist.get("CFBundleDisplayName") or plist.get("CFBundleName")
-            if name:
-                return str(name)
+            for key in ("CFBundleDisplayName", "CFBundleName"):
+                if visible(plist.get(key)):
+                    return str(plist[key]).strip()
         except Exception:
             pass
-        if Path(path).suffix == ".app":
+        if Path(path).suffix in BUNDLE_SUFFIXES:
             return Path(path).stem
     if "/" in client_id:  # identified by path, e.g. /usr/libexec/foo
         return Path(client_id).name
     return fallback or client_id.rsplit(".", 1)[-1] or client_id
+
+
+def _distinguisher(client_id: str, name: str, others: list[str]) -> str:
+    """What sets ``client_id`` apart from ``others`` that share its display name.
+
+    Bundle ids: the part after the components they all share, so
+    com.microsoft.OneDrive.FileProvider next to com.microsoft.OneDrive is
+    "FileProvider" and the main app keeps its plain name. Paths: the file name.
+    Returns "" when the plain name is the best label.
+    """
+    if client_id.startswith("/"):
+        tail = Path(client_id).name
+    else:
+        ids = [i for i in [client_id, *others] if not i.startswith("/")]
+        split = [i.split(".") for i in ids]
+        shared = 0
+        while all(len(s) > shared for s in split) and \
+                len({s[shared].lower() for s in split}) == 1:
+            shared += 1
+        tail = ".".join(client_id.split(".")[shared:])
+    return "" if tail.lower() == name.lower() else tail
+
+
+def disambiguate(apps: list[dict]) -> None:
+    """Give apps that share a display name a suffix: "OneDrive (FileProvider)".
+
+    Two different client ids with one name look like the same app listed
+    twice, in the sidebar, in problems and in notifications.
+    """
+    groups: dict[str, list[dict]] = {}
+    for a in apps:
+        groups.setdefault(a["app_name"].lower(), []).append(a)
+    for group in groups.values():
+        if len(group) < 2:
+            continue
+        ids = [a["client_id"] for a in group]
+        labels = {}
+        for a in group:
+            others = [i for i in ids if i != a["client_id"]]
+            tail = _distinguisher(a["client_id"], a["app_name"], others)
+            labels[a["client_id"]] = tail
+        # Still ambiguous (e.g. a daemon seen by bundle id and by path): say how
+        # macOS identified the path one.
+        seen: dict[str, int] = {}
+        for t in labels.values():
+            seen[t] = seen.get(t, 0) + 1
+        for cid, t in labels.items():
+            if seen[t] > 1:
+                labels[cid] = "by path" if cid.startswith("/") else (t or "")
+        for a in group:
+            if labels[a["client_id"]]:
+                a["app_name"] = f'{a["app_name"]} ({labels[a["client_id"]]})'
 
 
 APPLE_PATHS = ("/System/", "/usr/", "/Library/Apple/", "/sbin/", "/bin/")
@@ -198,6 +276,11 @@ def build_report(
                                  "app_kind": app["kind"],
                                  "service_name": permission["service_name"],
                                  "label": g.label})
+
+    disambiguate(list(apps.values()))
+    names = {cid: a["app_name"] for cid, a in apps.items()}
+    for p in problems:
+        p["app_name"] = names.get(p["client_id"], p["app_name"])
 
     order = {"problem": 0, "info": 1, "ok": 2, "none": 3}
     for app in apps.values():

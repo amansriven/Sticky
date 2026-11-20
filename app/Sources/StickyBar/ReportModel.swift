@@ -73,10 +73,10 @@ final class ReportModel: ObservableObject {
 
     func app(_ clientId: String) -> AppSummary? { apps.first { $0.clientId == clientId } }
 
-    var menuBarSymbol: String {
-        guard let r = report else { return errorMessage == nil ? "shield" : "exclamationmark.shield" }
-        if !r.problems.isEmpty { return "exclamationmark.shield.fill" }
-        return r.recorder.isRecording ? "checkmark.shield" : "shield.slash"
+    var menuBarIcon: MenuBarIcon {
+        guard let r = report else { return errorMessage == nil ? .stopped : .error }
+        if !r.problems.isEmpty { return .problem }
+        return r.recorder.isRecording ? .recording : .stopped
     }
 
     func toggleExpanded(_ key: String) {
