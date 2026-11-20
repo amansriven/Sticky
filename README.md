@@ -40,6 +40,10 @@ macOS does write its reasoning to the system log for every permission request:
 
 Sticky records that log quietly in the background and turns it into a plain-English explanation, with the fix.
 
+<p align="center">
+  <img src="docs/images/demo.gif" width="880" alt="BrokenTool is rebuilt and macOS silently refuses its Accessibility permission. Sticky's menu shows the problem, and its window explains that the approval names the earlier build, with steps to fix it">
+</p>
+
 > [!TIP]
 > One finding from building Sticky: after an app is rebuilt, **switching it off and on in System Settings doesn't help**. The saved approval still names the old build. Removing the app with **−** and adding it again with **+** does. Sticky tells you when you're in that situation.
 
@@ -197,7 +201,7 @@ The last one renders every page of the app, light and dark, to PNGs. Set `STICKY
 | `app/icon/` | `make-icon.swift` draws the app icon at every size; `concepts.swift` draws the alternatives that were considered |
 | `tools/brokentool/` | A deliberately fragile, ad-hoc signed test app (`build.sh TAG`, then `run.sh` or `run.sh ax`) |
 | `tests/fixtures/` | Real, anonymized permission logs from macOS 27.2.1 |
-| `scripts/` | `sticky-dev` runs this checkout; `frame-screenshot.swift` frames README screenshots |
+| `scripts/` | `sticky-dev` runs this checkout; `frame-screenshot.swift` frames README screenshots; `make-demo-gif.swift` makes the README's demo GIF |
 | `packaging/homebrew/` | The Homebrew formula and the app's cask (published in [amansriven/homebrew-tap](https://github.com/amansriven/homebrew-tap)) |
 | `app/release.sh` | Builds the release zip: unsigned, or signed and notarized when given a Developer ID |
 | `sticky-design.md` | Architecture, every experiment and its results, and what's next |
