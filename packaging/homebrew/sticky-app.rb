@@ -10,8 +10,8 @@
 # folder, where `sticky install-agent` can't load a LaunchAgent. The app's
 # Overview has a Start Recording button instead.
 cask "sticky-app" do
-  version "0.3.0"
-  sha256 "a9ed4d91b74f7d1b62a1f26e845f8fcc92c1714c6df7c999c05c5cc262a00219"
+  version "0.3.1"
+  sha256 "80c9347e6c2be1dc0c3ada6d9fd15ed7f1dba4182c8f567a853b74097796116b"
 
   url "https://github.com/amansriven/Sticky/releases/download/v#{version}/Sticky-#{version}-unsigned.zip"
   name "Sticky"

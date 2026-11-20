@@ -6,8 +6,8 @@ class Sticky < Formula
 
   desc "Explain why macOS keeps asking for permissions, and make them stick"
   homepage "https://github.com/amansriven/Sticky"
-  url "https://github.com/amansriven/Sticky/archive/refs/tags/v0.3.0.tar.gz"
-  sha256 "5c74d234879756baca1c1f93ab2aa2dc2bc23c6f687226d95f4af1e1b70be53c"
+  url "https://github.com/amansriven/Sticky/archive/refs/tags/v0.3.1.tar.gz"
+  sha256 "623822a4a1971f087763c037df05c2963aa98c5a762abb55c4ed2558d62fbba8"
   license "MIT"
 
   depends_on :macos
