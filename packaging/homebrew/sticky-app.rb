@@ -35,7 +35,9 @@ cask "sticky-app" do
   caveats <<~EOS
     Sticky isn't notarized by Apple yet, so the first time you open it macOS
     says it can't check it for malicious software. To open it once:
-      1. Open Sticky from Applications and click Done.
+      1. Open Sticky from Applications and click Done. Not "Move to Trash":
+         it's the highlighted button (Return clicks it too) and it deletes
+         the app.
       2. In System Settings → Privacy & Security, click "Open Anyway" next to
          the message about Sticky, then confirm.
     After that it opens normally. The source is at

@@ -58,7 +58,7 @@ brew install amansriven/tap/sticky amansriven/tap/sticky-app
 Open Sticky and click **Start Recording**.
 
 > [!IMPORTANT]
-> Sticky isn't notarized by Apple yet, so macOS blocks it the first time you open it. Click **Done**, then go to **System Settings → Privacy & Security** and click **Open Anyway**. You only do this once. If you'd rather not, [build it from source](#the-mac-app).
+> Sticky isn't notarized by Apple yet, so macOS blocks it the first time you open it. Click **Done**, not the highlighted **Move to Trash** button (pressing Return clicks it too), which deletes the app. Then go to **System Settings → Privacy & Security** and click **Open Anyway**. You only do this once. If you'd rather not, [build it from source](#the-mac-app).
 
 **Command line only:**
 
