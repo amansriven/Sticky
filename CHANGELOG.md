@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 0.3.1
 
 - **New menu bar icon:** the app icon's taped-on switch instead of a shield. On and taped while recording, a dot when something needs attention, and switched off when Sticky isn't recording.
 - **Fix:** apps that share a name are told apart: "OneDrive" and "OneDrive (FileProvider)" instead of two "OneDrive" rows. A daemon seen both by bundle id and by path shows "(by path)" on the second.
